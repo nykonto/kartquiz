@@ -1014,6 +1014,7 @@ function zoomTil(k, xy) {
 function flyttetAvBruker() { bruker = {}; $("#nullstill").hidden = false; }
 function nullstillZoom(anim) {
   bruker = d3.zoomIdentity; $("#nullstill").hidden = true; zoomMaal = sving = null;
+  forrigeMal = null;  // kameraet er flyttet bort fra utsnittet, så det må tilbake selv om det neste utsnittet er det samme
   if (anim !== false) tegnKart(true);
 }
 
