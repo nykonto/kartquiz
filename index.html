@@ -811,7 +811,8 @@ function settFarger(straks) {
   const o = S.opp, del = S.del, niv = o.niv, aktive = new Set(landI(del)), m = LAND[o.maal];
   const blindt = niv === 2 && o.fase === "quiz", zoomet = niv === 3;
   for (const l of ALLE) {
-    const egen = aktive.has(l.a3), s = egen ? status(del, niv, l.a3) : null;
+    const egen = aktive.has(l.a3), st = egen ? status(del, niv, l.a3) : null;
+    const s = blindt && st === "over" ? "ukjent" : st;  // målet får kortet sitt i det det blir spurt om, så «øver på» ville røpt svaret
     const i = l.id * 4;
     let fyll = egen ? tok[s] : tok.annet, skravur = 0, kant = egen ? (s === "laert" ? tok["laert-kant"] : tok.kant) : tok["annet-kant"], kb = egen ? .8 : .5, hoy = tok.maal, hb = 0;
     if (l === m && !blindt) { fyll = tok["maal-grunn"]; skravur = zoomet ? 0 : 1; hoy = tok.maal; hb = zoomet ? 1.6 : 2.2; }
@@ -1028,7 +1029,7 @@ function plasserNavn() {
   const ledig = r => iFelt(r) && !opptatt.some(q => r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1]);
   const boks = (x, y, w, a, opp, ned) => { const x0 = a === "start" ? x : a === "end" ? x - w : x - w / 2; return [x0 - 2, y - opp, x0 + w + 2, y + ned]; };
   const iBildet = p => p && p[0] > -50 && p[0] < W + 50 && p[1] > -50 && p[1] < H + 50;
-  const merkes = blindt ? [] : (zoomet ? DATA.land.filter(l => iBildet(proj(l.lp))) : [...aktive].map(a => LAND[a])).sort((a, b) => b.areal - a.areal);
+  const merkes = quiz ? [] : (zoomet ? DATA.land.filter(l => iBildet(proj(l.lp))) : [...aktive].map(a => LAND[a])).sort((a, b) => b.areal - a.areal);
   const legg = (nokkel, t, ll, p, x, y, font, farge, a, ekstra = {}) => valgt.set(nokkel, { t, ll, dx: x - p[0], dy: y - p[1], font, farge, a, ...ekstra });
   prikker.length = 0; ringer.length = 0;
   for (const l of merkes) {
@@ -1129,7 +1130,7 @@ function tegnNavn(dt, now) {
     const erMaal = l === m && !blindt;
     pen.beginPath(); pen.arc(p[0], p[1], erMaal ? 12 : 7, 0, 7);
     const st = status(S.del, o.niv, l.a3);
-    pen.strokeStyle = erMaal ? tok.css.maal : st === "laert" ? tok.css.laertMork : st === "over" ? tok.css.laert : tok.css.kant;
+    pen.strokeStyle = erMaal ? tok.css.maal : st === "laert" ? tok.css.laertMork : st === "over" && !blindt ? tok.css.laert : tok.css.kant;
     pen.lineWidth = erMaal ? 2.2 : 1.2; pen.stroke();
     if (erMaal && now < pulsTil && !ROLIG()) {
       const t = ((now - pulsTil) % 2400 + 2400) % 2400 / 2400;
@@ -1372,11 +1373,11 @@ let hoverPunkt = null, hoverVenter = false;
 function sjekkHover() {
   hoverVenter = false;
   if (!hoverPunkt || dra || !tok) return;
-  const { e, p } = hoverPunkt, l = landUnder(p), o = S.opp, blindt = o.niv === 2 && o.fase === "quiz";
+  const { e, p } = hoverPunkt, l = landUnder(p), o = S.opp;
   if (l !== hover) { hover = l; settFarger(); }
   if (!l) return skjulTips();
   if (LAND[l.a3] && landI(S.del).includes(l.a3)) return tipsFor(e, l);
-  if (blindt) return skjulTips();
+  if (o.fase === "quiz") return skjulTips();
   tips(e, navn(l.a3), LAND[l.a3] && "Hovedstad: " + LAND[l.a3].h);
 }
 
@@ -1391,7 +1392,7 @@ function tips(e, tittel, linje) {
 function tipsFor(e, l) {
   const o = S.opp;
   if (o.fase === "quiz" && o.niv === 2) return skjulTips();
-  if (l.a3 === o.maal && o.fase === "quiz") return o.niv === 1 ? tips(e, "Hvilket land er dette?") : tips(e, l.n, "Hovedstad: ?");
+  if (o.fase === "quiz") return l.a3 !== o.maal ? skjulTips() : o.niv === 1 ? tips(e, "Hvilket land er dette?") : tips(e, l.n, "Hovedstad: ?");
   tips(e, l.n, "Hovedstad: " + l.h);
 }
 function skjulTips() { tipsEl.hidden = true; }
@@ -1453,7 +1454,7 @@ function tegnPanel() {
     settTittel("Hvilket land er uthevet?", false);
     st.textContent = "Skriv navnet. Små skrivefeil godtas.";
     $("#svar").placeholder = "Landets navn";
-    $("#hint").textContent = "Hold musa over kartet for navn som ikke får plass.";
+    $("#hint").textContent = "Navnene kommer tilbake når du har svart.";
   } else if (quiz && o.niv === 2) {
     settTittel(`Finn ${m.n}`, false);
     st.textContent = "Klikk på landet på kartet.";
