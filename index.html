@@ -1611,6 +1611,9 @@ $("#tipsknapp").onclick = () => {
   S.opp.tips = Math.min((S.opp.tips || 0) + 1, 2);
   lagre(); tegnPanel(); vekk();
   if (!$("#svarskjema").hidden) $("#svar").focus({ preventScroll: true });
+  // på små skjermer kan tipset havne under knappene
+  const under = $("#tipslinje").getBoundingClientRect().bottom - $("#handlinger").getBoundingClientRect().top;
+  if (under > 0) $("#panel").scrollTop += under + 8;
 };
 $("#neste").onclick = neste;
 $("#nullstill").onclick = () => nullstillZoom();
