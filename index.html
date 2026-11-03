@@ -441,7 +441,7 @@ function tipsMønster(ord, nivå) {
 
 // ---------------------------------------------------------------- læring
 // Kort per verdensdel og nivå: «Europa/1» (land), «Europa/2» (finn), «Europa/3» (hovedsteder).
-const nyTilstand = () => ({ v: 3, del: "Europa", niv: {}, kort: {}, sett: {}, harSett: {}, steg: 0, opp: null, hist: [], rekke: 0, dag: {}, ulast: {}, t: 0 });
+const nyTilstand = () => ({ v: 3, fro: Math.random() * 2 ** 32 >>> 0, del: "Europa", niv: {}, kort: {}, sett: {}, harSett: {}, steg: 0, opp: null, hist: [], rekke: 0, dag: {}, ulast: {}, t: 0 });
 let S = nyTilstand();
 const kortFor = (del, niv) => (S.kort[del + "/" + niv] ||= {});
 // Gjennomgangen: land du har sett navnet på før spørsmålene starter (nivå 1 og 3). true = ferdig eller hoppet over.
@@ -475,16 +475,33 @@ function framdrift(del, niv) {
   return [alle.filter(a3 => (k[a3]?.b || 0) >= LAERT).length, alle.length];
 }
 
+// Rekkefølgen trekkes fra et frø som lagres med framgangen: ulik for hver spiller, men den samme når du kommer tilbake.
+function trekk(nokkel) {  // mulberry32, startet fra frøet og nøkkelen
+  let a = S.fro;
+  for (const c of nokkel) a = Math.imul(a ^ c.charCodeAt(0), 2654435761);
+  return () => {
+    a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 2 ** 32;
+  };
+}
+// Gjennomgangen og spørsmålene har hver sin rekkefølge, ellers ville gjennomgangen røpt hva som kommer.
+function rekkefolge(del, niv, fase) {
+  const r = trekk(`${del}/${niv}/${fase}`), a = landI(del);
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
 function nesteOppgave() {
   const del = S.del, niv = nivFor(del), kort = kortFor(del, niv), alle = landI(del);
   const intro = alle.filter(a3 => kort[a3]);
   const ovende = intro.filter(a3 => kort[a3].b < LAERT);
-  const etterStr = alle.slice().sort((a, b) => LAND[b].areal - LAND[a].areal);
-  const nye = etterStr.filter(a3 => !kort[a3]);
+  const nye = rekkefolge(del, niv, "quiz").filter(a3 => !kort[a3]);
   S.steg++;
   const sett = settFor(del, niv);
   if (harGjennomgang(niv) && sett !== true) {
-    const ny = etterStr.find(a3 => !sett.includes(a3));
+    const ny = rekkefolge(del, niv, "ny").find(a3 => !sett.includes(a3));
     if (ny) { S.opp = { del, niv, fase: "ny", maal: ny }; return; }
     S.sett[del + "/" + niv] = true;
   }
@@ -498,7 +515,7 @@ function nesteOppgave() {
   let kand = intro.filter(a3 => !nylig.includes(a3));
   if (!kand.length) kand = intro;
   const vekt = kand.map(a3 => (1 / 2 ** kort[a3].b) * (1 + (S.steg - kort[a3].s) / 8));
-  let x = Math.random() * vekt.reduce((a, b) => a + b, 0), i = 0;
+  let x = trekk(`${del}/${niv}/${S.steg}`)() * vekt.reduce((a, b) => a + b, 0), i = 0;
   while ((x -= vekt[i]) > 0 && i < kand.length - 1) i++;
   const a3 = kand[i];
   kort[a3].s = S.steg;
