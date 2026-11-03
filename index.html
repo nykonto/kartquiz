@@ -969,7 +969,8 @@ function kameraFor(o) {
     return pass(st.coordinates[0], c[0], c[1], .9);
   }
   const lite = pass(hjorneSett(m.lb), m.lp[0], m.lp[1]);
-  const z = Math.max(1, Math.min(10, Math.max(Math.sqrt(lite.R / hele.R / 2.2), (80 / Math.max(feltB, feltH)) * lite.R / hele.R)));
+  // Uten navn på kartet må nabolandene synes for at man skal vite hvor man er; gjennomgangen har navn og kan gå nærmere.
+  const z = Math.max(1, Math.min(o.fase === "ny" ? 10 : 3, Math.max(Math.sqrt(lite.R / hele.R / 2.2), (80 / Math.max(feltB, feltH)) * lite.R / hele.R)));
   if (z < 1.15) return hele;
   return { lo: m.lp[0], la: m.lp[1], R: hele.R * z };
 }
@@ -1077,7 +1078,8 @@ const tekstBredde = (t, font) => {
 const etiketter = new Map(), prikker = [], ringer = [];
 let grader = [], gradAlfa = 0, sistPlassert = 0, navnGaar = false, pulsTil = 0;
 const smaaLand = () => { const ut = []; for (const a3 of landI(S.del)) { const l = LAND[a3], a = aktivProj([l.lb[0], l.lb[1]]), b = aktivProj([l.lb[2], l.lb[3]]);
-  if (a && b && Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) < 9) ut.push(l); } return ut; };
+  const merkes = l === LAND[S.opp.maal] && !(S.opp.niv === 2 && S.opp.fase === "quiz");  // målet skal kunne sees også når det er litt større
+  if (a && b && Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) < (merkes ? 30 : 9)) ut.push(l); } return ut; };
 
 function plasserNavn() {
   const proj = aktivProj, F = TEMA.fonter, mobil = W <= 720;
