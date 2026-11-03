@@ -31,6 +31,9 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
 .forklaring { display: flex; flex-wrap: wrap; }
 .forklaring span { display: inline-flex; align-items: center; }
 .forklaring i { display: inline-block; }
+#poengrad { display: flex; align-items: baseline; }
+#rekke { display: inline-block; flex: 1; }
+#lyd { cursor: pointer; font: inherit; }
 #oppgave { display: flex; flex-direction: column; outline: none; }
 #fakta { display: grid; grid-template-columns: auto 1fr; margin: 0; }
 #fakta dd { margin: 0; min-width: 0; }
@@ -69,6 +72,8 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
   --sett: #eae8e1;
   --over: #f0db8e;
   --laert: #d8ac3c;
+  --poeng: #8a6410;
+  --glimt: #ffe07a;
   --laert-mork: #9a7414;
   --ramme: #a9b8c2;
   --aktiv: #16202a;
@@ -115,7 +120,7 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
   --pynt-bredde: 0 0 9px; --pynt-hoyde: 9px;
   --pynt: radial-gradient(circle at 50% 50%, #e6dba4 0 1.6px, #6f6230 2.2px 3.4px, #2a2110 3.8px 4.4px, transparent 4.6px);
   /* lesbarhet om natten: hav mot land, grenser og gjennomgått må kunne skilles i øyekroken */
-  --bg: #08121a; --grunt: #17323d; --grunt2: #0f2430; --gradnett: #14222b;
+  --poeng: #ecd98c; --glimt: #e8d27c; --bg: #08121a; --grunt: #17323d; --grunt2: #0f2430; --gradnett: #14222b;
   --annet: #1c2125; --annet-kant: #343b40;
   --ukjent: #2b3136; --sett: #44505a; --kant: #6b757b;
   --riktig: #8fbf7f; --feil: #e07a62; color-scheme: dark;
@@ -142,7 +147,7 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
   --pynt-bredde: 0 0 9px; --pynt-hoyde: 9px;
   --pynt: radial-gradient(circle at 50% 50%, #e6dba4 0 1.6px, #6f6230 2.2px 3.4px, #2a2110 3.8px 4.4px, transparent 4.6px);
   /* lesbarhet om natten: hav mot land, grenser og gjennomgått må kunne skilles i øyekroken */
-  --bg: #08121a; --grunt: #17323d; --grunt2: #0f2430; --gradnett: #14222b;
+  --poeng: #ecd98c; --glimt: #e8d27c; --bg: #08121a; --grunt: #17323d; --grunt2: #0f2430; --gradnett: #14222b;
   --annet: #1c2125; --annet-kant: #343b40;
   --ukjent: #2b3136; --sett: #44505a; --kant: #6b757b;
   --riktig: #8fbf7f; --feil: #e07a62; color-scheme: dark;
@@ -249,6 +254,13 @@ h1::before, h1::after { content: ""; flex: var(--pynt-bredde); height: var(--pyn
 #wiki { align-self: flex-start; color: var(--tekst); font-size: 15px; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 #wiki:hover { text-decoration-thickness: 2px; }
 #wiki:focus-visible { outline: 2px solid var(--maal); outline-offset: 2px; }
+#poengrad { gap: 14px; }
+#poengsum { font: 700 32px/1 var(--f-vis); color: var(--tekst); font-variant-numeric: tabular-nums; }
+#rekke { font: 600 15px var(--f-tekst); color: var(--dempet); white-space: pre; font-variant-numeric: tabular-nums; transform-origin: left center; }
+#rekke.varm { color: var(--poeng); }
+#lyd { background: none; border: 0; padding: 0; color: var(--dempet); font: 500 13px var(--f-tekst); text-decoration: underline; text-underline-offset: 3px; }
+#lyd:hover { color: var(--tekst); }
+#lyd:focus-visible { outline: 2px solid var(--fokus); outline-offset: 2px; }
 #tipslinje { font: 600 24px var(--f-tekst); letter-spacing: .08em; color: var(--maal); }
 #tipslinje.setning { font: 500 17px/1.35 var(--f-tekst); letter-spacing: 0; color: var(--tekst); }
 #nivaa button { padding: 8px 4px; }
@@ -294,6 +306,11 @@ const TEMA = {
   <aside id="panel" aria-label="Kartquiz">
     <h1 id="delnavn"><span>Europa</span></h1>
     <nav id="deler" aria-label="Verdensdel"></nav>
+    <div id="poengrad">
+      <span id="poengsum" aria-label="Poeng"></span>
+      <span id="rekke"></span>
+      <button type="button" id="lyd"></button>
+    </div>
     <div class="hode">
       <div id="nivaa" role="group" aria-label="Nivå">
         <button type="button" id="niv1" aria-pressed="true">Land<small>Nivå 1</small></button>
@@ -467,7 +484,7 @@ function tipsRing(o, m) {
 
 // ---------------------------------------------------------------- læring
 // Kort per verdensdel og nivå: «Europa/1» (land), «Europa/2» (finn), «Europa/3» (hovedsteder).
-const nyTilstand = () => ({ v: 3, fro: Math.random() * 2 ** 32 >>> 0, del: "Europa", niv: {}, kort: {}, sett: {}, harSett: {}, steg: 0, opp: null, hist: [], rekke: 0, dag: {}, ulast: {}, t: 0 });
+const nyTilstand = () => ({ v: 3, fro: Math.random() * 2 ** 32 >>> 0, del: "Europa", niv: {}, kort: {}, sett: {}, harSett: {}, steg: 0, opp: null, hist: [], rekke: 0, poeng: 0, best: 0, runde: {}, lyd: true, dag: {}, ulast: {}, t: 0 });
 let S = nyTilstand();
 const kortFor = (del, niv) => (S.kort[del + "/" + niv] ||= {});
 // Gjennomgangen: land du har sett navnet på før spørsmålene starter (nivå 1 og 3). true = ferdig eller hoppet over.
@@ -561,16 +578,27 @@ function nesteOppgave() {
 }
 
 // Riktig gir ett steg mot lært, riktig med tips et halvt (uten å bryte rekka), feil starter landet på nytt.
+// Poeng: 100 for riktig (50 med tips), opptil 50 i fartsbonus, ganget med rekka. Feil gir 0 og bryter rekka.
+const gangeFor = r => r >= 10 ? 4 : r >= 6 ? 3 : r >= 3 ? 2 : 1;
+const tall = n => n.toLocaleString("nb-NO");
 function gi(riktig, halv) {
-  const o = S.opp, k = kortFor(o.del, o.niv)[o.maal], før = k.b;
+  const o = S.opp, k = kortFor(o.del, o.niv)[o.maal], før = k.b, rekkeFør = S.rekke;
   if (riktig && !halv) { k.b = Math.min(k.b + 1, 5); k.r++; S.rekke++; }
   else if (riktig) { k.b = Math.min(k.b + 0.5, 5); k.r++; }
   else { k.b = 0; k.f++; S.rekke = 0; }  // et lært land som glipper trenger ett nytt riktig svar
   k.d = S.steg + (k.b < LAERT ? 4 : 40);  // det du ikke kan ennå, kommer snart igjen
-  const d = (S.dag[iDag()] ||= [0, 0]); d[0] += riktig; d[1]++;
+  const gange = gangeFor(S.rekke), sek = (Date.now() - (o.start || 0)) / 1000, ganger = o.niv === 3 ? 2 : 1;  // på nivå 3 er det to steg
+  const fart = !riktig || halv ? 0 : sek <= 6 * ganger ? 50 : sek <= 12 * ganger ? 25 : 0;
+  const poeng = riktig ? ((halv ? 50 : 100) + fart) * gange : 0;
+  S.poeng = (S.poeng || 0) + poeng;
+  S.best = Math.max(S.best || 0, S.rekke);
+  const r = ((S.runde ||= {})[o.del + "/" + o.niv] ||= { p: 0, r: 0, t: 0, best: 0 });
+  r.p += poeng; r.r += riktig; r.t++; r.best = Math.max(r.best, S.rekke);
+  const d = (S.dag[iDag()] ||= [0, 0]); d[0] += riktig; d[1]++; d[3] = (d[3] || 0) + poeng;
   S.hist = [...S.hist, o.maal].slice(-10);
-  Object.assign(o, { fase: "svar", riktig, halv: riktig && halv, nyLaert: før < LAERT && k.b >= LAERT });
+  Object.assign(o, { fase: "svar", riktig, halv: riktig && halv, nyLaert: før < LAERT && k.b >= LAERT, poeng, fart, gange, oppGange: gange > gangeFor(rekkeFør), brutt: !riktig && rekkeFør >= 3 ? rekkeFør : 0 });
   const [l, t] = framdrift(o.del, o.niv);
+  if (o.nyLaert && l === t) { o.fullfort = true; o.oppsum = { ...r }; }
   if (l === t && o.niv < 3) (S.ulast[o.del] ||= {})[o.niv + 1] = true;
 }
 
@@ -864,8 +892,8 @@ function lesTokens() {
   const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim();
   const natt = rgb(v("--bg")).reduce((a, b) => a + b) < 200;
   tok = { natt };
-  for (const n of ["bg", "grunt", "grunt2", "gradnett", "annet", "annet-kant", "ukjent", "sett", "over", "laert", "laert-kant", "kant", "maal", "maal-grunn", "feil", "regel", "tekst"]) tok[n] = rgb(v("--" + n));
-  tok.css = { maal: v("--maal"), halo: v("--halo"), tekst: v("--tekst"), dempet: v("--dempet"), land: v("--e-land") || v("--tekst"), hav: v("--e-hav") || v("--dempet"), bg: v("--bg"), kant: v("--kant"), feil: v("--feil"), riktig: v("--riktig"), laert: v("--laert"), laertMork: v("--laert-mork") };
+  for (const n of ["bg", "grunt", "grunt2", "gradnett", "annet", "annet-kant", "ukjent", "sett", "over", "laert", "laert-kant", "kant", "maal", "maal-grunn", "feil", "regel", "tekst", "glimt"]) tok[n] = rgb(v("--" + n));
+  tok.css = { maal: v("--maal"), halo: v("--halo"), tekst: v("--tekst"), dempet: v("--dempet"), land: v("--e-land") || v("--tekst"), hav: v("--e-hav") || v("--dempet"), bg: v("--bg"), kant: v("--kant"), feil: v("--feil"), riktig: v("--riktig"), laert: v("--laert"), laertMork: v("--laert-mork"), poeng: v("--poeng") };
 }
 const u3 = (loc, c) => gl.uniform3f(loc, c[0] / 255, c[1] / 255, c[2] / 255);
 let hover = null;
@@ -878,6 +906,7 @@ function settFarger(straks) {
     const i = l.id * 4;
     let fyll = egen ? tok[s] : tok.annet, skravur = 0, kant = egen ? (s === "laert" ? tok["laert-kant"] : tok.kant) : tok["annet-kant"], kb = egen ? .8 : .5, hoy = tok.maal, hb = 0;
     if (l === m && !blindt) { fyll = tok["maal-grunn"]; skravur = zoomet ? 0 : 1; hoy = tok.maal; hb = zoomet ? 1.6 : 2.2; }
+    if (l === m && o.fase === "svar" && o.riktig) { fyll = tok[st]; skravur = 0; hoy = tok["laert-kant"]; hb = 2.2; }  // landet kartlegges
     if (o.fase === "svar" && niv === 2 && l.a3 === o.treff && l !== m) { hoy = tok.feil; hb = 2.4; }
     if (o.fase === "svar" && niv === 2 && l === m && !o.riktig) { hoy = tok.maal; hb = 2.4; }
     if (l === hover && !hb) { hoy = egen ? tok.tekst : tok.kant; hb = 1.3; }
@@ -960,13 +989,13 @@ const hjorneSett = (b, p = 0) => [[b[0] - p, b[1] - p], [b[2] + p, b[3] + p], [b
 const foelgerLandet = o => o.niv === 1 || o.fase !== "quiz";
 function kameraFor(o) {
   const v = DATA.visning[S.del], m = LAND[o.maal];
-  if (o.niv === 3) {
+  if (o.niv === 3 && !o.fullfort) {
     const pad = Math.max(Math.max(m.lb[2] - m.lb[0], m.lb[3] - m.lb[1]) * 0.35, 1.5);
     const hp = m.hp, h = [[hp[0] - pad / 2, hp[1] - pad / 2], [hp[0] + pad / 2, hp[1] + pad / 2]];  // hovedstaden kan ligge utenfor landets største del
     return pass([...hjorneSett(m.lb, pad), ...h], (m.lb[0] + m.lb[2]) / 2, (m.lb[1] + m.lb[3]) / 2);
   }
   const hele = pass(v.skrog, v.senter[0], v.senter[1]);
-  if (!foelgerLandet(o)) return hele;
+  if (o.fullfort || !foelgerLandet(o)) return hele;
   const st = storstDel(m);
   if (erStort(m)) {  // store land får hele kula; ingen egen projeksjon trengs lenger
     const c = d3.geoCentroid(st);
@@ -1169,6 +1198,89 @@ function plasserNavn() {
   for (const [k, n] of valgt) { const e = etiketter.get(k); if (e) Object.assign(e, n, { mal: 1 }); else etiketter.set(k, { ...n, alfa: 0, mal: 1 }); }
   navnGaar = true;
 }
+// Reaksjonen på et svar: tallet stiger fra landet, en ring brer seg, landet lyser opp og lyden følger rekka.
+const flyt = [], ringbolger = [], blink = [];
+function lys(l, t) { blink.push({ id: l.id, t }); }
+function feir(o) {
+  const m = LAND[o.maal], ll = o.niv === 3 ? m.hp : foelgerLandet(o) && erStort(m) ? d3.geoCentroid(storstDel(m)) : m.lp, now = performance.now();
+  lyd(o.riktig ? (o.fullfort ? "ferdig" : "riktig") : "feil", Math.max(0, S.rekke - 1));
+  tellOpp();
+  if (o.riktig && !ROLIG()) $("#rekke").animate([{ transform: "scale(1.18)" }, { transform: "none" }], { duration: 320, easing: "cubic-bezier(.16, 1, .3, 1)" });
+  if (ROLIG()) return;
+  if (o.riktig) {
+    flyt.push({ ll, t0: now, tekst: `+${tall(o.poeng)}`, under: o.oppGange ? `×${o.gange}` : o.fart ? "raskt" : "", farge: tok.css.poeng });
+    ringbolger.push({ ll, t0: now });
+    lys(m, now);
+  } else if (o.brutt) flyt.push({ ll, t0: now, tekst: `Rekka på ${o.brutt} er brutt`, under: "", farge: tok.css.feil, liten: true });
+  if (o.fullfort) for (const a3 of landI(o.del)) { const l = LAND[a3]; lys(l, now + 500 + Math.min(1500, km(m.lp, l.lp) / 2)); }  // en bølge av gull ut fra det siste landet
+  vekk();
+}
+function tegnReaksjon(now) {
+  let igjen = false;
+  for (let i = ringbolger.length - 1; i >= 0; i--) {
+    const b = ringbolger[i], t = (now - b.t0) / 900, p = aktivProj(b.ll);
+    if (t >= 1) { ringbolger.splice(i, 1); continue; }
+    igjen = true;
+    if (!p) continue;
+    pen.beginPath(); pen.arc(p[0], p[1], 10 + 80 * d3.easeCubicOut(t), 0, 7);
+    pen.strokeStyle = tok.css.poeng; pen.lineWidth = 2; pen.globalAlpha = 1 - t; pen.stroke(); pen.globalAlpha = 1;
+  }
+  pen.textAlign = "center";
+  for (let i = flyt.length - 1; i >= 0; i--) {
+    const f = flyt[i], t = (now - f.t0) / 1300, p = aktivProj(f.ll);
+    if (t >= 1) { flyt.splice(i, 1); continue; }
+    igjen = true;
+    if (!p) continue;
+    const y = p[1] - 18 - 54 * d3.easeCubicOut(t);
+    pen.globalAlpha = t < .7 ? 1 : (1 - t) / .3;
+    pen.lineJoin = "round"; pen.strokeStyle = tok.css.bg; pen.lineWidth = 5; pen.fillStyle = f.farge;
+    pen.font = f.liten ? "600 17px 'Barlow Semi Condensed'" : "700 30px 'Barlow Semi Condensed'";
+    pen.strokeText(f.tekst, p[0], y); pen.fillText(f.tekst, p[0], y);
+    if (f.under) { pen.font = "600 16px 'Barlow Semi Condensed'"; pen.strokeText(f.under, p[0], y + 20); pen.fillText(f.under, p[0], y + 20); }
+    pen.globalAlpha = 1;
+  }
+  return igjen;
+}
+function kjorBlink(now) {
+  for (let i = blink.length - 1; i >= 0; i--) {
+    if (blink[i].t > now) continue;
+    const { id } = blink[i], j = id * 4;
+    naa[j] = tok.glimt[0]; naa[j + 1] = tok.glimt[1]; naa[j + 2] = tok.glimt[2]; naa[j + 3] = 0;
+    treg[id] = 1; fargerGaar = true;
+    blink.splice(i, 1);
+  }
+}
+
+// Lydene lages i nettleseren, så siden ikke trenger lydfiler: en liten messingklang som stiger med rekka.
+let lydKtx = null;
+const SKALA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+function klang(ktx, frekvens, start, styrke, varighet) {
+  for (const [f, v] of [[1, 1], [2.76, .28], [5.4, .08]]) {
+    const o = ktx.createOscillator(), g = ktx.createGain();
+    o.frequency.value = frekvens * f;
+    g.gain.setValueAtTime(styrke * v, start);
+    g.gain.exponentialRampToValueAtTime(.0001, start + varighet / f ** .5);
+    o.connect(g).connect(ktx.destination);
+    o.start(start); o.stop(start + varighet);
+  }
+}
+function lyd(navn, trinn = 0) {
+  if (S.lyd === false) return;
+  try {
+    lydKtx ||= new (window.AudioContext || window.webkitAudioContext)();
+    lydKtx.resume();
+    const n = lydKtx.currentTime, tone = i => 523.25 * 2 ** (SKALA[Math.min(i, SKALA.length - 1)] / 12);
+    if (navn === "riktig") klang(lydKtx, tone(trinn), n, .13, .5);
+    else if (navn === "ferdig") [0, 3, 5, 8].forEach((i, x) => klang(lydKtx, tone(i), n + x * .11, .14, .8));
+    else {
+      const o = lydKtx.createOscillator(), g = lydKtx.createGain();
+      o.type = "triangle"; o.frequency.setValueAtTime(140, n); o.frequency.exponentialRampToValueAtTime(90, n + .18);
+      g.gain.setValueAtTime(.11, n); g.gain.exponentialRampToValueAtTime(.0001, n + .22);
+      o.connect(g).connect(lydKtx.destination); o.start(n); o.stop(n + .22);
+    }
+  } catch {}
+}
+
 function hvilketLand(ll) {
   if (!ll) return null;
   const [x, y] = ll;
@@ -1238,6 +1350,7 @@ function tegnNavn(dt, now) {
     pen.fillText(e.t, p[0] + e.dx, p[1] + e.dy);
   }
   pen.letterSpacing = "0px";
+  if (tegnReaksjon(now)) igjen = true;
   gradAlfa += ((stille ? 1 : 0) - gradAlfa) * fart;
   if (Math.abs((stille ? 1 : 0) - gradAlfa) > .01) igjen = true;
   if (gradAlfa > .01 && grader.length) {
@@ -1321,6 +1434,7 @@ function bilde(now) {
   sist = now;
   const flyttet = styrKamera(now, dt);
   settRot();
+  kjorBlink(now);
   toneFarger(dt);
   const stille = !kurs && !sving && zoomMaal === null && !dra;
   if (flyttet && now - sistPlassert > 110) { plasserNavn(); sistPlassert = now; }
@@ -1329,7 +1443,7 @@ function bilde(now) {
   tegnFlate();
   tegnNavn(dt, now);
   dreiRose();
-  if (!stille || fargerGaar || navnGaar || now < pulsTil) vekk(); else sist = 0;
+  if (!stille || fargerGaar || navnGaar || blink.length || now < pulsTil) vekk(); else sist = 0;
 }
 
 let forrigeMal = null;
@@ -1479,7 +1593,32 @@ function settTittel(tekst, erNavn) {  // et nytt navn glir inn, så man ser at l
     t.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 350, easing: "cubic-bezier(.16, 1, .3, 1)" });
 }
 
+// Poengsummen teller seg opp til det nye tallet.
+let vistPoeng = null, tellerOpp = false;
+function tellOpp() {
+  const mal = S.poeng || 0, fra = vistPoeng ?? mal;
+  if (ROLIG() || fra === mal) { vistPoeng = mal; $("#poengsum").textContent = tall(mal); return; }
+  const t0 = performance.now();
+  tellerOpp = true;
+  const steg = now => {
+    const t = Math.min(1, (now - t0) / 520);
+    vistPoeng = Math.round(fra + (mal - fra) * d3.easeCubicOut(t));
+    $("#poengsum").textContent = tall(vistPoeng);
+    if (t < 1) requestAnimationFrame(steg); else tellerOpp = false;
+  };
+  requestAnimationFrame(steg);
+}
+function tegnPoeng() {
+  if (!tellerOpp) { vistPoeng = S.poeng || 0; $("#poengsum").textContent = tall(vistPoeng); }
+  const g = gangeFor(S.rekke);
+  $("#rekke").textContent = S.rekke ? `${S.rekke} på rad${g > 1 ? `  ×${g}` : ""}` : (S.best ? `Beste rekke ${S.best}` : "");
+  $("#rekke").classList.toggle("varm", g > 1);
+  $("#lyd").textContent = S.lyd === false ? "Lyd av" : "Lyd på";
+  $("#lyd").setAttribute("aria-pressed", S.lyd !== false);
+}
+
 function tegnPanel() {
+  tegnPoeng();
   document.documentElement.style.setProperty("--oppgavelinje", oppgavelinje() + "px");
   const o = S.opp, del = S.del, niv = nivFor(del), m = LAND[o.maal];
   $("#deler").replaceChildren(...DATA.deler.map(d => {
@@ -1515,7 +1654,7 @@ function tegnPanel() {
   $("#hopp").hidden = o.fase !== "ny";
   const settNå = settFor(del, niv);
   $("#tilbake").hidden = !(o.fase === "ny" && settNå !== true && settNå.length > 0);
-  $("#wiki").hidden = quiz;
+  $("#wiki").hidden = quiz || !!o.fullfort;
   $("#wiki").href = `https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/${m.wd}`;
   $("#tipsknapp").hidden = !quiz;
   $("#tipsknapp").textContent = o.tips ? "Ett tips til" : "Tips";
@@ -1545,7 +1684,7 @@ function tegnPanel() {
     $("#svar").placeholder = "Hovedstad";
     $("#hint").textContent = "";
   } else {
-    settTittel(m.n, true);
+    settTittel(o.fullfort ? `${NIVAA[o.niv]} ferdig` : m.n, true);
     if (o.fase === "ny") {
       const sett = settFor(o.del, o.niv), nr = (sett === true ? 0 : sett.length) + 1, tot = landI(o.del).length;
       st.textContent = o.niv === 3 ? `Gjennomgang av hovedstedene, ${nr} av ${tot}. Spørsmålene starter når du har sett alle.`
@@ -1553,7 +1692,7 @@ function tegnPanel() {
     }
     else if (o.riktig) {
       st.className = "riktig";
-      st.textContent = o.halv ? "Riktig med tips. Teller halvt." : o.nyLaert ? `Riktig, og nå lært. ${S.rekke} på rad.` : `Riktig. ${S.rekke} på rad.`;
+      st.textContent = o.halv ? `Riktig med tips, +${tall(o.poeng ?? 0)} poeng. Teller halvt.` : `Riktig, +${tall(o.poeng ?? 0)} poeng.`;
     } else {
       st.className = "feil";
       if (o.niv === 2) st.textContent = o.gaOpp ? "Her er landet." : `Feil. Du klikket på ${navn(o.treff)}.`;
@@ -1563,12 +1702,20 @@ function tegnPanel() {
         st.textContent = !o.skrevet ? "Her er svaret." : o.treff ? `Feil. Du skrev ${skrevet}.` : `Feil. «${skrevet}» gjenkjennes ikke.`;
       }
     }
-    rad("Hovedstad", m.h);
-    if (o.niv === 3 && o.klikk) rad("Ditt klikk", `${Math.round(o.klikk.km)} km unna`);
-    rad("Folketall", folketall(m.fo, m.fy));
-    rad("Språk", m.sp);
-    rad("Valuta", m.va);
-    rad("Grenser til", m.nb.length ? m.nb.map(navn).join(", ") : "Ingen landegrenser");
+    if (o.fase === "svar" && o.brutt) st.textContent += ` Rekka på ${o.brutt} er brutt.`;
+    if (o.fullfort) {
+      st.textContent = `${m.n} var det siste. Du kan alle ${landI(o.del).length} i ${o.del}.`;
+      rad("Poeng", tall(o.oppsum.p));
+      rad("Riktige", `${o.oppsum.r} av ${o.oppsum.t}`);
+      rad("Beste rekke", tall(o.oppsum.best));
+    } else {
+      rad("Hovedstad", m.h);
+      if (o.niv === 3 && o.klikk) rad("Ditt klikk", `${Math.round(o.klikk.km)} km unna`);
+      rad("Folketall", folketall(m.fo, m.fy));
+      rad("Språk", m.sp);
+      rad("Valuta", m.va);
+      rad("Grenser til", m.nb.length ? m.nb.map(navn).join(", ") : "Ingen landegrenser");
+    }
     const [lf, tf] = framdrift(del, o.niv);
     $("#hint").textContent = o.fase === "ny" ? "Enter eller piltastene blar. Kan du dem allerede, start spørsmålene."
       : lf === tf && o.niv < 3 && o.nyLaert ? `Alle er lært. Neste tar deg til nivå ${o.niv + 1}, ${NIVAA[o.niv + 1]}.`
@@ -1576,12 +1723,13 @@ function tegnPanel() {
   }
   if (quiz && (o.tips > 0 || o.stedTips > 0)) $("#hint").textContent = `${$("#hint").textContent} Riktig svar med tips teller halvt.`.trim();
   const d = S.dag[iDag()] || [0, 0, 0];
-  $("#idag").textContent = `I dag: ${d[2] ? `${d[2]} gjennomgått, ` : ""}${d[0]} av ${d[1]} riktige`;
+  $("#idag").textContent = `I dag: ${d[2] ? `${d[2]} gjennomgått, ` : ""}${d[0]} av ${d[1]} riktige${d[3] ? `, ${tall(d[3])} poeng` : ""}`;
   visLagring();
 }
 
 function tegnAlt() {
   if (!S.opp || !LAND[S.opp.maal] || S.opp.del !== S.del || S.opp.niv !== nivFor(S.del)) nesteOppgave();
+  if (S.opp.fase === "quiz" && !S.opp.start) S.opp.start = Date.now();  // fartsbonusen måles fra spørsmålet kommer
   const nyttLand = bruktOpp !== null && (bruktOpp.maal !== S.opp.maal || bruktOpp.fase === "svar" && S.opp.fase !== "svar" || bruktOpp.del !== S.del);
   bruktOpp = { maal: S.opp.maal, fase: S.opp.fase, del: S.del };
   if (nyttLand && bruker !== d3.zoomIdentity) nullstillZoom(false);  // kartet glir tilbake til oppgavens utsnitt
@@ -1592,7 +1740,13 @@ function tegnAlt() {
   if (skriv) { $("#svar").value = ""; $("#svar").focus({ preventScroll: true }); }
   else $("#oppgave").focus({ preventScroll: true });
 }
-function endret() { lagre(); tegnAlt(); }
+function endret() {
+  const o = S.opp, nytt = o.fase === "svar" && !o.feiret;
+  if (nytt) o.feiret = true;
+  lagre();
+  tegnAlt();
+  if (nytt) feir(o);
+}
 
 function byttDel(del) {
   if (del === S.del) return;
@@ -1635,6 +1789,7 @@ $("#neste").onclick = neste;
 $("#nullstill").onclick = () => nullstillZoom();
 $("#zoominn").onclick = () => zoomTil(1.6, senter);
 $("#zoomut").onclick = () => zoomTil(1 / 1.6, senter);
+$("#lyd").onclick = () => { S.lyd = S.lyd === false; lagre(); tegnPoeng(); lyd("riktig", 2); };
 $("#hopp").onclick = hoppGjennomgang;
 $("#tilbake").onclick = tilbake;
 for (const n of [1, 2, 3]) $("#niv" + n).onclick = () => byttNiv(n);
