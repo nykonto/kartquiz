@@ -917,7 +917,7 @@ function tegnKart(anim = false) {
   gradtall(proj, W, H, mobil);
   kompassrose(proj, rose);
   kartG.interrupt().attr("transform", null).style("opacity", null);
-  etikettlag.interrupt().style("opacity", null);
+  etikettlag.interrupt().attr("transform", null).style("opacity", null);
   if (!animer) return;
   const k = før.s / visning.s, dx = før.t[0] - k * visning.t[0], dy = før.t[1] - k * visning.t[1];
   if (glid && Math.abs(k - 1) < 0.005 && Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;  // samme utsnitt
