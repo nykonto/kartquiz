@@ -470,6 +470,13 @@ function oppgrader(s) {
   return s;
 }
 
+// Framgang fra før frøet fantes har et gjeldende land valgt etter størrelse; det trekkes på nytt.
+function lastInn(lagret) {
+  const s = oppgrader(Object.assign(nyTilstand(), lagret || {}));
+  if (lagret && lagret.fro === undefined) s.opp = null;
+  return s;
+}
+
 function framdrift(del, niv) {
   const k = kortFor(del, niv), alle = landI(del);
   return [alle.filter(a3 => (k[a3]?.b || 0) >= LAERT).length, alle.length];
@@ -607,7 +614,7 @@ async function koblDb() {
     const snap = await dok.get();
     dbDok = dok;
     const d = snap.exists ? snap.data() : null;
-    if (d && d.t > (S.t || 0)) { S = oppgrader(Object.assign(nyTilstand(), JSON.parse(d.json))); tegnAlt(); }
+    if (d && d.t > (S.t || 0)) { S = lastInn(JSON.parse(d.json)); tegnAlt(); }
     else if (S.t) skrivDb();
     visLagring();
   } catch { dbDok = null; }
@@ -1593,7 +1600,7 @@ let rTimer;
 addEventListener("resize", () => { clearTimeout(rTimer); rTimer = setTimeout(() => tegnKart(), 120); });
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => tegnKart());
 
-S = oppgrader(Object.assign(nyTilstand(), lesLokal() || {}));
+S = lastInn(lesLokal());
 for (const [k, v] of Object.entries(S.sett)) if (Array.isArray(v)) S.harSett[k] = [...new Set([...(S.harSett[k] || []), ...v])];
 tegnAlt();
 document.fonts?.ready.then(() => tegnKart());
