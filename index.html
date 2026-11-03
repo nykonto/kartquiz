@@ -537,9 +537,11 @@ function nesteOppgave() {
     if (ny) { S.opp = { del, niv, fase: "ny", maal: ny }; return; }
     S.sett[del + "/" + niv] = true;
   }
-  // Annethvert nytt land og repetisjon, så et land du sliter med kommer tilbake uten å låse deg til de samme landene.
-  const nylig = S.hist.slice(-2);
-  const forfalt = intro.filter(a3 => (kort[a3].d ?? 0) <= S.steg && !nylig.includes(a3));
+  // Første runde går gjennom alle land: bare det du sliter med kommer tilbake, annethvert med nye land.
+  // Land du kunne, venter til runden er ferdig, og lærte land kommer først igjen når alle er lært.
+  const nylig = S.hist.slice(-2), ulaert = intro.filter(a3 => kort[a3].b < LAERT);
+  const aktuelle = nye.length ? ulaert.filter(a3 => kort[a3].b < 1) : ulaert;
+  const forfalt = aktuelle.filter(a3 => (kort[a3].d ?? 0) <= S.steg && !nylig.includes(a3));
   const steg = niv === 3 ? "klikk" : null;
   if (nye.length && (!forfalt.length || S.repetert)) {
     const a3 = nye[0];
@@ -549,8 +551,8 @@ function nesteOppgave() {
     return;
   }
   let kand = forfalt;
-  if (!kand.length) {  // alle land er tatt inn og ingen er forfalt: den som snart skal igjen
-    const rest = intro.filter(a3 => !nylig.includes(a3)), liste = rest.length ? rest : intro, forst = d3.min(liste, a3 => kort[a3].d ?? 0);
+  if (!kand.length) {  // ingen er forfalt: den som snart skal igjen
+    const pool = ulaert.length ? ulaert : intro, rest = pool.filter(a3 => !nylig.includes(a3)), liste = rest.length ? rest : pool, forst = d3.min(liste, a3 => kort[a3].d ?? 0);
     kand = liste.filter(a3 => (kort[a3].d ?? 0) === forst);
   }
   const a3 = kand[Math.floor(trekk(`${del}/${niv}/${S.steg}`)() * kand.length)];
