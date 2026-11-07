@@ -434,7 +434,7 @@ for (const f of Object.values(TEMA.fonter)) document.fonts?.load(f);  // lerrete
       <button type="button" class="knapp" id="hopp" hidden>Start spørsmålene</button>
       <button type="button" class="knapp hoved" id="neste">Neste</button>
     </div>
-    <div id="fot"><span id="idag"></span><span id="lagring"></span></div>
+    <div id="fot"><span id="idag"></span><span id="lagring"></span><span>Trykk T for å bytte mellom lys og mørk.</span></div>
   </aside>
   <div id="navneskjerm" class="boks" role="dialog" aria-labelledby="navnetittel" hidden>
     <h1 id="navnetittel"><span>Kartquiz</span></h1>
@@ -468,6 +468,18 @@ const LAERT = 1;
 const TOPP = { url: "https://hyqbzfcfmcfczshqdcxb.supabase.co", nokkel: "sb_publishable_5IAnWSX7egzMqEI01OmgCA__HKK8ZZ8" };
 const harTopp = () => /^https:/.test(TOPP.url) && !window.claude;  // siden på claude.ai får ikke kontakt med databasen
 const $ = s => document.querySelector(s);
+// Lys eller mørk: siden følger maskinen, men T bytter. Valget huskes i nettleseren; bytter man tilbake til det
+// maskinen bruker, glemmes valget, så siden følger maskinen igjen.
+const TEMANOKKEL = "kartquiz-tema", maskinMork = matchMedia("(prefers-color-scheme: dark)");
+const settTema = t => { if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; };
+try { settTema(localStorage.getItem(TEMANOKKEL)); } catch {}
+function byttTema() {
+  const naa = document.documentElement.dataset.theme || (maskinMork.matches ? "dark" : "light"), ny = naa === "dark" ? "light" : "dark";
+  const folger = (ny === "dark") === maskinMork.matches;
+  settTema(folger ? null : ny);
+  try { if (folger) localStorage.removeItem(TEMANOKKEL); else localStorage.setItem(TEMANOKKEL, ny); } catch {}
+  tegnKart();
+}
 const NIVAA = { 1: "Land", 2: "Finn", 3: "Hovedsteder" };
 const FRAMDRIFT_ORD = { 1: "land lært", 2: "land funnet", 3: "hovedsteder lært" };
 
@@ -2456,6 +2468,7 @@ $("#tilbake").onclick = tilbake;
 for (const n of [1, 2, 3]) $("#niv" + n).onclick = () => byttNiv(n);
 addEventListener("keydown", e => {
   if (e.key === "Escape" && !$("#topp").hidden) lukkTopp();
+  if ((e.key === "t" || e.key === "T") && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) { byttTema(); return; }
   if (!S.navn || !$("#topp").hidden) return;  // Enter og piltaster skal ikke styre spillet bak navneskjermen eller topplisten
   if (e.key === "Enter" && !e.repeat && S.opp.fase !== "quiz" && document.activeElement?.tagName !== "BUTTON") { e.preventDefault(); neste(); }
   // piltaster blar i gjennomgangen
