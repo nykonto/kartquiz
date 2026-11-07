@@ -116,7 +116,7 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
   --maal: #a3233f; --maal-grunn: #f1d5c6; --poeng: #8a5a10; --glimt: #f2c75a;
   --ramme: #5a4630; --aktiv: #3b2a1a; --aktiv-tekst: #f3e9d2; --fokus: #a3233f; --spor: #ddd0b0;
   --halo: rgba(241, 231, 205, .88); --e-land: #3b2a1a; --e-hav: #5a5a4c; --riktig: #3f6b2c; --feil: #b4461c;
-  --tre: #c4935a; --tre-mork: #7a5230; --elv: #2f6670; --innsjo: #d8d6bb; --bly: #9a9184;
+  --tre: #c4935a; --tre-mork: #7a5230; --elv: #6b8582; --innsjo: #d8d6bb;
   --f-vis: "IM Fell English SC", Georgia, serif; --f-hav: "IM Fell English", Georgia, serif;
   --tekstur: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.24 0 0 0 0 0.10 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23a%29'/%3E%3C/svg%3E");
 }
@@ -178,13 +178,13 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #1a140d; --grunt: #2a2316; --grunt2: #211a11; --gradnett: #2b2316; --bolge: #77664a;
   --annet: #261f15; --annet-kant: #46392a; --ukjent: #3b3021; --sett: #3b3021; --over: #3b3021; --laert: #3d3223;
-  --kant: #a48c62; --laert-kant: #a48c62; --tre: #8c6239; --tre-mork: #3e2814; --elv: #8fb3a8; --innsjo: #221d14; --bly: #958a76;
+  --kant: #a48c62; --laert-kant: #a48c62; --tre: #8c6239; --tre-mork: #3e2814; --elv: #7d9188; --innsjo: #221d14;
   --maal: #c9687f; --maal-grunn: #3b2a22; --e-land: #eadcc0; --e-hav: #bba77f; --halo: rgba(26, 20, 13, .85); --fokus: #e07b93;
 } }
 :root[data-theme="dark"] {
   --bg: #1a140d; --grunt: #2a2316; --grunt2: #211a11; --gradnett: #2b2316; --bolge: #77664a;
   --annet: #261f15; --annet-kant: #46392a; --ukjent: #3b3021; --sett: #3b3021; --over: #3b3021; --laert: #3d3223;
-  --kant: #a48c62; --laert-kant: #a48c62; --tre: #8c6239; --tre-mork: #3e2814; --elv: #8fb3a8; --innsjo: #221d14; --bly: #958a76;
+  --kant: #a48c62; --laert-kant: #a48c62; --tre: #8c6239; --tre-mork: #3e2814; --elv: #7d9188; --innsjo: #221d14;
   --maal: #c9687f; --maal-grunn: #3b2a22; --e-land: #eadcc0; --e-hav: #bba77f; --halo: rgba(26, 20, 13, .85); --fokus: #e07b93;
 }
 h1, #tittel, #poengsum, #spillernavn { font-weight: 400; }
@@ -1132,7 +1132,7 @@ let fbA = null, fbS = null;
 const GLYF_V = FELLES + `
 layout(location=0) in vec2 aC; layout(location=1) in vec3 aP; layout(location=2) in vec4 aG;  // symbol, nivå, størrelse, land
 uniform vec2 uSkyv, uSkyv2; uniform float uLoftId, uLoftId2, uMaks; uniform int uBrikke; uniform sampler2D uTab;
-out vec2 vUv; out float vA; out vec2 vSkyv; out float vBly;
+out vec2 vUv; out float vA; out vec2 vSkyv;
 void main() {
   vec3 p = uRot * aP;
   float px = uR * .0349066 / exp2(aG.y);  // avstanden i nettet, i skjermpunkter
@@ -1145,8 +1145,6 @@ void main() {
   // land utenfor verdensdelen har tynnere grense i fargetabellen; terrenget der tones ned, så spillebrettet skiller seg ut
   bool egen = aG.w >= 0. && texelFetch(uTab, ivec2(int(aG.w), 1), 0).a > .1;
   a *= egen ? 1. : .3;
-  // kartet tegnes inn: i land du ikke har sett ennå står terrenget i blyant, så blekk, så akvarell når landet er lært
-  vBly = egen ? 1. - smoothstep(.02, .15, texelFetch(uTab, ivec2(int(aG.w), 3), 0).a) : 0.;
   float s = clamp(px * .62, 9., uMaks) * aG.z * (aG.x >= 15. ? 1.3 : 1.);  // skogklyngene er større, så de flyter sammen
   vec2 c = uSenter + vec2(p.x, -p.y) * uR + vSkyv;
   vec2 k = aC * .5 + .5, celle = vec2(mod(aG.x, 8.), floor(aG.x / 8.));
@@ -1154,13 +1152,13 @@ void main() {
   vUv = (celle + k) / vec2(8., 3.); vA = a;
 }`;
 const GLYF_F = FARGE_F + `
-uniform sampler2D uArk, uAvst; uniform vec3 uBlekk, uBly; uniform float uStyrke, uRad, uDpr; uniform vec2 uFlate;
-in vec2 vUv; in float vA; in vec2 vSkyv; in float vBly; out vec4 ut;
+uniform sampler2D uArk, uAvst; uniform vec3 uBlekk; uniform float uStyrke, uRad, uDpr; uniform vec2 uFlate;
+in vec2 vUv; in float vA; in vec2 vSkyv; out vec4 ut;
 void main() {
   vec4 t = texture(uArk, vUv);
   float d = texture(uAvst, (gl_FragCoord.xy - vec2(vSkyv.x, -vSkyv.y) * uDpr) / uFlate).r * uRad;  // vik for grenser og kyst
-  float a = max(t.r, t.g * .3) * vA * uStyrke * mix(.15, 1., smoothstep(1.5, 4.5, d)) * mix(1., .5, vBly);
-  if (a < .004) discard; ut = vec4(mix(uBlekk, uBly, vBly), a);
+  float a = max(t.r, t.g * .3) * vA * uStyrke * mix(.15, 1., smoothstep(1.5, 4.5, d));
+  if (a < .004) discard; ut = vec4(uBlekk, a);
 }`;
 // Symbolarket tegnes i nettleseren: rødt er blekkstreker, grønt er skyggesiden, svart dekker det som står bak.
 // 7 typer x 3 varianter: fjell, løvtre, gran, ørken, savanne, løvskog og granskog (tette kroner uten stammer).
@@ -1299,9 +1297,10 @@ function tegnElver(felles, strek, b) {
   gl.enable(gl.BLEND);
   felles(pStrek);
   if (b) { gl.uniform1f(pStrek.u.uKunId, b.l.id); gl.uniform2f(pStrek.u.uSkyv, 0, -brikkeLoft(b)); }
-  else strek(elver.sjoKant, 0, .9 * elvBredde(), tok.elv);
+  else strek(elver.sjoKant, 0, .7 * elvBredde(), tok.elv);
   const w = elvBredde();
-  [2.3, 1.5, 1].forEach((bredde, k) => strek(elver.klasser[k], 0, bredde * w, tok.elv));
+  // tynnere enn grensene, så de ikke leses som grenser; mindre elver kommer først når kartet er zoomet inn
+  [[1.3, 0], [.85, 1100], [.55, 2600]].forEach(([bredde, fraR], k) => { if (kam.R >= fraR) strek(elver.klasser[k], 0, bredde * w, tok.elv); });
 }
 // terrengdataene krever kreditering (RESOLVE Ecoregions 2017 er CC BY 4.0)
 if (TEMA.pergament && DATA.terreng) $("#kartdata").textContent = "Kartdata: Natural Earth · Terreng: RESOLVE Ecoregions 2017 (CC BY 4.0), SRTM15+";
@@ -1311,7 +1310,7 @@ function tegnTerreng(felles, aktive, paaBrikker) {
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   felles(pGlyf);
   gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, terreng.ark); gl.activeTexture(gl.TEXTURE0);
-  gl.uniform1i(pGlyf.u.uArk, 4); u3(pGlyf.u.uBlekk, tok.kant); u3(pGlyf.u.uBly, tok.bly); gl.uniform1f(pGlyf.u.uStyrke, tok.natt ? .7 : .8);
+  gl.uniform1i(pGlyf.u.uArk, 4); u3(pGlyf.u.uBlekk, tok.kant); gl.uniform1f(pGlyf.u.uStyrke, tok.natt ? .7 : .8);
   gl.uniform1f(pGlyf.u.uMaks, W <= 720 ? 17 : 21);
   const [b1, b2] = [brikke, svev].map(b => aktive.includes(b) ? b : null);
   gl.uniform1f(pGlyf.u.uLoftId, b1 ? b1.l.id : -9); gl.uniform2f(pGlyf.u.uSkyv, 0, -brikkeLoft(brikke));
@@ -1365,7 +1364,7 @@ function lesTokens() {
   const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim();
   const natt = rgb(v("--bg")).reduce((a, b) => a + b) < 200;
   tok = { natt };
-  for (const n of ["bg", "grunt", "grunt2", "gradnett", "annet", "annet-kant", "ukjent", "sett", "over", "laert", "laert-kant", "kant", "maal", "maal-grunn", "feil", "regel", "tekst", "glimt", "bolge", "tre", "tre-mork", "elv", "innsjo", "bly"]) tok[n] = rgb(v("--" + n));
+  for (const n of ["bg", "grunt", "grunt2", "gradnett", "annet", "annet-kant", "ukjent", "sett", "over", "laert", "laert-kant", "kant", "maal", "maal-grunn", "feil", "regel", "tekst", "glimt", "bolge", "tre", "tre-mork", "elv", "innsjo"]) tok[n] = rgb(v("--" + n));
   tok.css = { maal: v("--maal"), halo: v("--halo"), tekst: v("--tekst"), dempet: v("--dempet"), land: v("--e-land") || v("--tekst"), hav: v("--e-hav") || v("--dempet"), bg: v("--bg"), kant: v("--kant"), feil: v("--feil"), riktig: v("--riktig"), laert: v("--laert"), laertMork: v("--laert-mork"), poeng: v("--poeng") };
 }
 const u3 = (loc, c) => gl.uniform3f(loc, c[0] / 255, c[1] / 255, c[2] / 255);
