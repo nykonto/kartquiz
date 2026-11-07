@@ -918,15 +918,19 @@ void main() { vec2 p = vec2((gl_VertexID & 1) * 4 - 1, (gl_VertexID & 2) * 2 - 1
 const HAV_F = FARGE_F + LYS + `
 uniform vec2 uSenter, uSkjerm; uniform float uR, uDpr; uniform vec3 uHav, uUte, uRing, uGlod;
 #ifdef PERG
-uniform mat3 uRot; uniform sampler2D uAvst; uniform vec2 uFlate; uniform float uRad; uniform vec3 uBlekk, uGrunt;
+uniform mat3 uRot; uniform sampler2D uAvst; uniform vec2 uFlate; uniform float uRad, uTid, uFlakk; uniform vec3 uBlekk, uGrunt;
 vec3 pergament(vec3 n) {  // papir med blekklinjer som følger kysten utover, tettest inne ved land
   vec3 w = n * uRot;
   float d = texture(uAvst, gl_FragCoord.xy / uFlate).r * uRad, naer = 1. - d / uRad, fw = max(fwidth(d), 1e-3), linje = 0.;
   vec3 c = mix(uHav, uGrunt, naer * naer * .55);
   float s = uRad / 36., dv = d + (skalert(w, uR, 16.) - .5) * 1.4 * s;  // litt ujevn, som stukket for hånd
-  for (int k = 0; k < 4; k++) {  // fire linjer som ebber ut fort, så havet ikke blir sterkere enn grensene
-    float fk = float(k), dk = s * (3.2 * (fk + 1.) + .35 * fk * fk), b = k == 0 ? .5 : .3;
-    linje = max(linje, (1. - smoothstep(b, b + fw, abs(dv - dk))) * (k == 0 ? .85 : .5 / fk));
+  // Kystlinjen står fast; linjene utenfor glir sakte utover og ebber ut, som bølger som puster (én linjeavstand per 6 s).
+  linje = (1. - smoothstep(.5, .5 + fw, abs(dv - s * 3.2))) * .85;
+  float fase = fract(uTid / 6.);
+  for (int k = 1; k < 5; k++) {
+    float fk = float(k) - 1. + fase + 1., dk = s * (3.2 * (fk + 1.) + .35 * fk * fk);
+    float vekt = .5 / fk * smoothstep(1., 1.6, fk) * (1. - smoothstep(4., 4.9, fk));
+    linje = max(linje, (1. - smoothstep(.3, .3 + fw, abs(dv - dk))) * vekt);
   }
   c = mix(c, uBlekk, linje * .8);
   return c * (1. + papir(w, uR));
@@ -940,12 +944,16 @@ void main() {
   if (r < 1.) {
     vec3 n = vec3(q.x, -q.y, sqrt(max(0., 1. - r * r)));
 #ifdef PERG
-    c = pergament(n) * lys(n);
+    c = pergament(n) * lys(n) * uFlakk;
 #else
     c = uHav * lys(n);
 #endif
   }
+#ifdef PERG
+  else c = uUte + uGlod * exp(-px / 34.) * uFlakk * uFlakk;  // stearinlyset flakker
+#else
   else c = uUte + uGlod * exp(-px / 34.);
+#endif
   c = mix(c, uRing, 1. - smoothstep(.4, 1.2, abs(px)));  // messingmeridianen rundt kula
   ut = vec4(c, 1.);
 }`;
@@ -957,7 +965,7 @@ void main() { vec3 p = uRot * aP; vN = p; vId = int(aId); gl_Position = klipp(uS
 const LAND_F = FARGE_F + LYS + `
 uniform sampler2D uTab; uniform float uDpr; uniform vec3 uMaal, uMaalGrunn;
 #ifdef PERG
-uniform mat3 uRot; uniform float uR, uRad, uLoft; uniform sampler2D uAvst; uniform vec2 uFlate, uSkyv;
+uniform mat3 uRot; uniform float uR, uRad, uLoft, uFlakk; uniform sampler2D uAvst; uniform vec2 uFlate, uSkyv;
 #endif
 in vec3 vN; flat in int vId; out vec4 ut;
 void main() {
@@ -982,7 +990,7 @@ void main() {
     c = mix(c, mix(uMaalGrunn, uMaal, strek), t.a);
   }
 #ifdef PERG
-  c *= (1. + papir(w, uR)) * (1. + .05 * uLoft);
+  c *= (1. + papir(w, uR)) * (1. + .05 * uLoft) * uFlakk;
 #endif
   ut = vec4(c * lys(n), 1.);
 }`;
@@ -1484,7 +1492,8 @@ function tegnFlate() {
   const felles = q => { gl.useProgram(q.p); gl.uniform2f(q.u.uSenter, senter[0], senter[1]); gl.uniform2f(q.u.uSkjerm, W, H); gl.uniform1f(q.u.uR, kam.R);
     if (q.u.uRot) gl.uniformMatrix3fv(q.u.uRot, true, rot); if (q.u.uDpr) gl.uniform1f(q.u.uDpr, DPR); if (q.u.uLys) gl.uniform1f(q.u.uLys, tok.natt ? .55 : .16);
     if (q.u.uSkyv) gl.uniform2f(q.u.uSkyv, 0, 0); if (q.u.uLoft) gl.uniform1f(q.u.uLoft, 0);
-    if (q.u.uFlate) gl.uniform2f(q.u.uFlate, flate.width, flate.height); if (q.u.uAvst) gl.uniform1i(q.u.uAvst, 1); if (q.u.uRad) gl.uniform1f(q.u.uRad, avstRad()); };
+    if (q.u.uFlate) gl.uniform2f(q.u.uFlate, flate.width, flate.height); if (q.u.uAvst) gl.uniform1i(q.u.uAvst, 1); if (q.u.uRad) gl.uniform1f(q.u.uRad, avstRad());
+    if (q.u.uFlakk) gl.uniform1f(q.u.uFlakk, flakk()); if (q.u.uTid) gl.uniform1f(q.u.uTid, ROLIG() ? 0 : performance.now() / 1000); };
   const aktive = TEMA.pergament ? loftede() : [];
   if (TEMA.pergament) avstandsfelt(felles, aktive);
   gl.viewport(0, 0, flate.width, flate.height);
@@ -1961,6 +1970,15 @@ function dreiRose() {
 // ---- bildeløkken: går bare når noe faktisk endrer seg, så en stillestående side ikke bruker maskinen
 let venter = false, sist = 0, varStille = true;
 function vekk() { if (!venter) { venter = true; requestAnimationFrame(bilde); } }
+// Pergamentet lever litt: havet puster og stearinlyset flakker. Det koster strøm, så det går med 30 bilder i sekundet,
+// og bare når siden er synlig, noen har rørt den siste minuttet, og systemet ikke ber om redusert bevegelse.
+let sistAktiv = performance.now(), levendeTimer = 0;
+const levende = () => TEMA.pergament && !!S.navn && !ROLIG() && !document.hidden && performance.now() - sistAktiv < 60000;
+const flakk = () => { if (!TEMA.pergament || !tok?.natt || ROLIG()) return 1; const t = performance.now() / 1000;
+  return 1 + .016 * Math.sin(t * 7.3) + .011 * Math.sin(t * 13.7 + 1.3) + .009 * Math.sin(t * 2.3 + .4); };
+const vaakne = () => { const sov = !levende(); sistAktiv = performance.now(); if (sov) vekk(); };
+for (const t of ["pointermove", "pointerdown", "keydown", "wheel"]) addEventListener(t, vaakne, { passive: true });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) vaakne(); });
 function bilde(now) {
   venter = false;
   const dt = sist ? Math.min(50, now - sist) : 16;
@@ -1977,7 +1995,9 @@ function bilde(now) {
   tegnFlate();
   tegnNavn(dt, now);
   dreiRose();
-  if (!stille || fargerGaar || navnGaar || brikkeGaar || blink.length || now < pulsTil) vekk(); else sist = 0;
+  if (!stille || fargerGaar || navnGaar || brikkeGaar || blink.length || now < pulsTil) vekk();
+  else if (levende()) { clearTimeout(levendeTimer); levendeTimer = setTimeout(vekk, 24); }  // neste bilde kommer da med annenhver skjermoppdatering: rundt 30 bilder/s
+  else sist = 0;
 }
 
 let forrigeMal = null;
