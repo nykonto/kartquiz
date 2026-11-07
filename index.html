@@ -60,10 +60,11 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@1,8..60,400;1,8..60,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap">
 <style>
-/* Sjøkart: dagpalett som et papirkart, nattpalett som en dempet ECDIS-skjerm. Grunt vann bølger ut fra
-   kysten, havnavn står i kursiv, og det du skal finne er trykket i magenta. Quizen er kartets tittelboks. */
+/* Pergament: et gammelt kart limt på trebrikker. Havet er papir med blekklinjer langs kysten, land er blankt
+   til det er lært og fylles da med akvarell i sin egen farge, og brikken spørsmålet gjelder, løftes ut.
+   Oppsettet arver sjøkartet; bare fargene, skriften og kartet er nye. Om kvelden ligger kartet i stearinlys. */
 :root {
   --bg: #f4f7f9;
   --felt: #eef2f4;
@@ -105,6 +106,19 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
   --pynt-bredde: 1 1 0; --pynt-hoyde: 1px; --pynt: var(--regel);
   --niv-aktiv: var(--aktiv); --niv-aktiv-tekst: var(--aktiv-tekst); --niv-strek: none;
   --spor: var(--grunt); --halo-laert: var(--halo); --fokus: var(--maal);
+}
+:root {
+  --bg: #e9dcbc; --felt: #efe4c8; --tekst: #2f2216; --dempet: #6e5a42; --regel: #4d3a27; --tynn: #cdbc98;
+  --grunt: #d6d3b6; --grunt2: #e0d6b9; --gradnett: #d4c4a0; --bolge: #6d5a40;
+  --annet: #e2d6b8; --annet-kant: #b5a383;
+  --ukjent: #f1e7cd; --sett: #f1e7cd; --over: #f1e7cd; --laert: #f2e8cf;
+  --kant: #6a5236; --laert-kant: #6a5236; --laert-mork: #8a6528;
+  --maal: #a3233f; --maal-grunn: #f1d5c6; --poeng: #8a5a10; --glimt: #f2c75a;
+  --ramme: #5a4630; --aktiv: #3b2a1a; --aktiv-tekst: #f3e9d2; --fokus: #a3233f; --spor: #ddd0b0;
+  --halo: rgba(241, 231, 205, .88); --e-land: #3b2a1a; --e-hav: #5a5a4c; --riktig: #3f6b2c; --feil: #b4461c;
+  --tre: #c4935a; --tre-mork: #7a5230;
+  --f-vis: "IM Fell English SC", Georgia, serif; --f-hav: "IM Fell English", Georgia, serif;
+  --tekstur: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.24 0 0 0 0 0.10 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23a%29'/%3E%3C/svg%3E");
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   /* Natt: kartbord i mørkt tre med messingbeslag. Havet er blekkblått, land er treverk, lært er messing. */
@@ -160,6 +174,20 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
   --ukjent: #2b3136; --sett: #44505a; --kant: #6b757b;
   --riktig: #8fbf7f; --feil: #e07a62; color-scheme: dark;
 }
+
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1a140d; --grunt: #2a2316; --grunt2: #211a11; --gradnett: #2b2316; --bolge: #77664a;
+  --annet: #261f15; --annet-kant: #46392a; --ukjent: #3b3021; --sett: #3b3021; --over: #3b3021; --laert: #3d3223;
+  --kant: #a48c62; --laert-kant: #a48c62; --tre: #8c6239; --tre-mork: #3e2814;
+  --maal: #c9687f; --maal-grunn: #3b2a22; --e-land: #eadcc0; --e-hav: #bba77f; --halo: rgba(26, 20, 13, .85); --fokus: #e07b93;
+} }
+:root[data-theme="dark"] {
+  --bg: #1a140d; --grunt: #2a2316; --grunt2: #211a11; --gradnett: #2b2316; --bolge: #77664a;
+  --annet: #261f15; --annet-kant: #46392a; --ukjent: #3b3021; --sett: #3b3021; --over: #3b3021; --laert: #3d3223;
+  --kant: #a48c62; --laert-kant: #a48c62; --tre: #8c6239; --tre-mork: #3e2814;
+  --maal: #c9687f; --maal-grunn: #3b2a22; --e-land: #eadcc0; --e-hav: #bba77f; --halo: rgba(26, 20, 13, .85); --fokus: #e07b93;
+}
+h1, #tittel, #poengsum, #spillernavn { font-weight: 400; }
 
 /* gradert kartramme: annenhver svart og lys stav, med en tynn rammelinje innenfor */
 #app::before {
@@ -325,12 +353,19 @@ h1::before, h1::after { content: ""; flex: var(--pynt-bredde); height: var(--pyn
   .tastatur .knapp { padding: 8px 14px; }
   .tastatur #navneskjerm { top: calc(var(--synlig) / 2 + var(--dy, 0px)); padding: 14px; gap: 10px; }
 }
+/* forklaringen: lært er akvarell i flere farger, ukjent er blankt papir */
+.f-laert { background: linear-gradient(135deg, #c9705f 0 34%, #cfa043 34% 67%, #7f9c57 67%); }
+.f-over { background: linear-gradient(135deg, #e3b2a6 0 34%, #e6cf98 34% 67%, #bccaa0 67%); }
+.f-sett { background: var(--sett); }
+.f-ukjent { background: var(--ukjent); }
+@media (min-width: 721px) { #handlinger { background: var(--tekstur), var(--felt); bottom: -22px; padding-bottom: 22px; } }  /* knappene står fast nederst og dekker teksten som glir under, helt ned til kanten */
 </style>
 <script>
 const TEMA = {
-  fonter: { land: "600 11.5px 'Barlow Semi Condensed'", hst: "400 11.5px 'Barlow Semi Condensed'", hav: "italic 400 16px 'Source Serif 4'", maal: "700 19px 'Barlow Semi Condensed'", maalHst: "600 14px 'Barlow Semi Condensed'" },
-  marg: 40, panelBredde: 430, sperring: 1.12, havnavn: true, store: true,
+  fonter: { land: "400 13px 'IM Fell English SC'", hst: "italic 400 12.5px 'IM Fell English'", hav: "italic 400 18px 'IM Fell English'", maal: "400 23px 'IM Fell English SC'", maalHst: "italic 400 16px 'IM Fell English'" },
+  marg: 40, panelBredde: 430, sperring: 1.06, havnavn: true, store: false, pergament: true,
 };
+for (const f of Object.values(TEMA.fonter)) document.fonts?.load(f);  // lerretet ber ikke selv om skriftene
 </script>
 
 
@@ -826,7 +861,7 @@ function byggGeometri() {
     const p = tilKule(a[0], a[1]), q = tilKule(b[0], b[1]);
     st.push(p[0], p[1], p[2], q[0], q[1], q[2], id);
   }
-  for (const l of ALLE) for (const d of l.deler) {
+  for (const l of ALLE) { l.fl0 = fl.length / 4; l.st0 = st.length / 7; for (const d of l.deler) {
     const flatt = [], huller = [], pkt = [];
     d.ringer.forEach((r, i) => {
       if (i) huller.push(pkt.length);
@@ -836,7 +871,7 @@ function byggGeometri() {
     });
     const t = earcut(flatt, huller, 2);
     for (let i = 0; i < t.length; i += 3) trekant(pkt[t[i]], pkt[t[i + 1]], pkt[t[i + 2]], l.id);
-  }
+  } l.fln = fl.length / 4 - l.fl0; l.stn = st.length / 7 - l.st0; }  // hvert land ligger samlet, så brikken kan løftes ut alene
   const nett = [];
   const nettkant = (a, b) => { const p = tilKule(a[0], a[1]), q = tilKule(b[0], b[1]); nett.push(p[0], p[1], p[2], q[0], q[1], q[2], 0); };
   for (let lo = -180; lo < 180; lo += 10) for (let la = -80; la < 80; la += 2) nettkant([lo, la], [lo, la + 2]);
@@ -850,9 +885,27 @@ precision highp float;
 uniform mat3 uRot; uniform vec2 uSenter, uSkjerm; uniform float uR;
 vec4 klipp(vec2 p) { return vec4(p.x / uSkjerm.x * 2. - 1., 1. - p.y / uSkjerm.y * 2., 0., 1.); }
 `;
+// Pergament: støy for papir, akvarellkorn og treverk. «skalert» holder samme størrelse på skjermen uansett zoom,
+// ved å tone mellom to oktaver i stedet for å skli når kula zoomes.
+const STOY = `
+float hash3(vec3 p) { p = fract(p * .3183099 + .1); p *= 17.; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float noise(vec3 x) {
+  vec3 i = floor(x), f = fract(x); f = f * f * (3. - 2. * f);
+  return mix(mix(mix(hash3(i), hash3(i + vec3(1, 0, 0)), f.x), mix(hash3(i + vec3(0, 1, 0)), hash3(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(hash3(i + vec3(0, 0, 1)), hash3(i + vec3(1, 0, 1)), f.x), mix(hash3(i + vec3(0, 1, 1)), hash3(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+float skalert(vec3 w, float R, float px) {
+  float L = log2(R / px), i = floor(L), f = L - i;
+  return mix(noise(w * exp2(i)), noise(w * exp2(i + 1.) + 17.), f);
+}
+float papir(vec3 w, float R) {
+  float fin = skalert(w, R, 2.5) - .5, mid = skalert(w, R, 24.) - .5, flekk = noise(w * 4. + 3.) * .6 + noise(w * 11.) * .4 - .5;
+  return fin * .05 + mid * .04 + flekk * .1;
+}
+`;
 const FARGE_F = `#version 300 es
 precision highp float;
-`;
+` + (TEMA.pergament ? "#define PERG\n" + STOY : "");
 const LYS = `
 uniform float uLys;
 float lys(vec3 n) {  // lyset kommer oppe fra venstre, og kula mørkner mot kanten
@@ -864,45 +917,85 @@ const HAV_V = `#version 300 es
 void main() { vec2 p = vec2((gl_VertexID & 1) * 4 - 1, (gl_VertexID & 2) * 2 - 1); gl_Position = vec4(p, 0., 1.); }`;
 const HAV_F = FARGE_F + LYS + `
 uniform vec2 uSenter, uSkjerm; uniform float uR, uDpr; uniform vec3 uHav, uUte, uRing, uGlod;
+#ifdef PERG
+uniform mat3 uRot; uniform sampler2D uAvst; uniform vec2 uFlate; uniform float uRad; uniform vec3 uBlekk, uGrunt;
+vec3 pergament(vec3 n) {  // papir med blekklinjer som følger kysten utover, tettest inne ved land
+  vec3 w = n * uRot;
+  float d = texture(uAvst, gl_FragCoord.xy / uFlate).r * uRad, naer = 1. - d / uRad, fw = max(fwidth(d), 1e-3), linje = 0.;
+  vec3 c = mix(uHav, uGrunt, naer * naer * .55);
+  float s = uRad / 36., dv = d + (skalert(w, uR, 16.) - .5) * 1.4 * s;  // litt ujevn, som stukket for hånd
+  for (int k = 0; k < 6; k++) {
+    float fk = float(k), dk = s * (3.2 * (fk + 1.) + .35 * fk * fk), b = k == 0 ? .55 : .32;
+    linje = max(linje, (1. - smoothstep(b, b + fw, abs(dv - dk))) * (1. - fk / 6.3));
+  }
+  c = mix(c, uBlekk, linje * .8);
+  return c * (1. + papir(w, uR));
+}
+#endif
 out vec4 ut;
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uSkjerm.y * uDpr - gl_FragCoord.y) / uDpr;
   vec2 q = (p - uSenter) / uR; float r = length(q), px = (r - 1.) * uR;
   vec3 c;
-  if (r < 1.) c = uHav * lys(vec3(q.x, -q.y, sqrt(max(0., 1. - r * r))));
+  if (r < 1.) {
+    vec3 n = vec3(q.x, -q.y, sqrt(max(0., 1. - r * r)));
+#ifdef PERG
+    c = pergament(n) * lys(n);
+#else
+    c = uHav * lys(n);
+#endif
+  }
   else c = uUte + uGlod * exp(-px / 34.);
   c = mix(c, uRing, 1. - smoothstep(.4, 1.2, abs(px)));  // messingmeridianen rundt kula
   ut = vec4(c, 1.);
 }`;
 const LAND_V = FELLES + `
 layout(location=0) in vec3 aP; layout(location=1) in float aId;
+uniform vec2 uSkyv;  // brikken som løftes, flyttes på skjermen
 out vec3 vN; flat out int vId;
-void main() { vec3 p = uRot * aP; vN = p; vId = int(aId); gl_Position = klipp(uSenter + vec2(p.x, -p.y) * uR); }`;
+void main() { vec3 p = uRot * aP; vN = p; vId = int(aId); gl_Position = klipp(uSenter + vec2(p.x, -p.y) * uR + uSkyv); }`;
 const LAND_F = FARGE_F + LYS + `
 uniform sampler2D uTab; uniform float uDpr; uniform vec3 uMaal, uMaalGrunn;
+#ifdef PERG
+uniform mat3 uRot; uniform float uR, uRad, uLoft; uniform sampler2D uAvst; uniform vec2 uFlate, uSkyv;
+#endif
 in vec3 vN; flat in int vId; out vec4 ut;
 void main() {
   vec3 n = normalize(vN);
   if (n.z < 0.) discard;
   vec4 t = texelFetch(uTab, ivec2(vId, 0), 0);
   vec3 c = t.rgb;
+#ifdef PERG
+  // akvarell: fargen samler seg langs grensen og blekner innover, med litt korn
+  vec3 w = n * uRot;
+  vec4 v = texelFetch(uTab, ivec2(vId, 3), 0);
+  float d = texture(uAvst, (gl_FragCoord.xy - vec2(uSkyv.x, -uSkyv.y) * uDpr) / uFlate).r * uRad;
+  c = mix(c, v.rgb, v.a * (.3 + .7 * exp(-d / 6.)) * (.8 + .4 * skalert(w, uR, 7.)));
+#endif
   if (t.a > .01) {  // skravuren er trykt i skjermens rutenett og står stille mens kartet flytter seg
     float v = fract(dot(gl_FragCoord.xy / uDpr, vec2(.7071)) / 7.);
+#ifdef PERG
+    float strek = 1. - smoothstep(.06, .15, abs(v - .5));  // tynne blekkstreker
+#else
     float strek = 1. - smoothstep(.11, .25, abs(v - .5));
+#endif
     c = mix(c, mix(uMaalGrunn, uMaal, strek), t.a);
   }
+#ifdef PERG
+  c *= (1. + papir(w, uR)) * (1. + .05 * uLoft);
+#endif
   ut = vec4(c * lys(n), 1.);
 }`;
 const STREK_V = FELLES + `
 layout(location=0) in vec2 aC; layout(location=1) in vec3 aA; layout(location=2) in vec3 aB; layout(location=3) in float aId;
-uniform float uBredde; uniform int uModus; uniform sampler2D uTab; uniform vec3 uFarge;
+uniform float uBredde; uniform int uModus; uniform sampler2D uTab; uniform vec3 uFarge; uniform vec2 uSkyv;
 out vec2 vP; out float vZ; flat out vec2 vA; flat out vec2 vB; flat out float vH; flat out vec3 vFarge;
 void main() {
   vec3 a = uRot * aA, b = uRot * aB;
   float w = uBredde; vec3 col = uFarge;
   if (uModus > 0) { vec4 t = texelFetch(uTab, ivec2(int(aId), uModus), 0); w = t.a * 8.; col = t.rgb; }
   if (w < .02 || (a.z < 0. && b.z < 0.)) { gl_Position = vec4(2., 2., 0., 1.); return; }
-  vec2 pa = uSenter + vec2(a.x, -a.y) * uR, pb = uSenter + vec2(b.x, -b.y) * uR;
+  vec2 pa = uSenter + vec2(a.x, -a.y) * uR + uSkyv, pb = uSenter + vec2(b.x, -b.y) * uR + uSkyv;
   vec2 d = pb - pa; float l = length(d);
   vec2 e = l > 1e-4 ? d / l : vec2(1., 0.), n = vec2(-e.y, e.x);
   float h = w * .5 + 1.;
@@ -934,6 +1027,85 @@ function program(v, f) {
 }
 const pHav = program(HAV_V, HAV_F), pLand = program(LAND_V, LAND_F), pStrek = program(STREK_V, STREK_F);
 
+// ---- pergament: avstandsfelt, skygge og trebrikke (bare i pergament-temaet)
+// Avstanden til nærmeste kyst eller grense regnes på grafikkortet hvert bilde: hver kant tegnes som en kapsel som skriver
+// avstanden sin, og MIN-blanding beholder den nærmeste. Havet trekker blekklinjer fra den, land får akvarellkanten.
+const AVST_V = FELLES + `
+layout(location=0) in vec2 aC; layout(location=1) in vec3 aA; layout(location=2) in vec3 aB;
+uniform float uRad; uniform vec2 uSkyv;
+out vec2 vP; out float vZ; flat out vec2 vA; flat out vec2 vB;
+void main() {
+  vec3 a = uRot * aA, b = uRot * aB;
+  if (a.z < 0. && b.z < 0.) { gl_Position = vec4(2., 2., 0., 1.); return; }
+  vec2 pa = uSenter + vec2(a.x, -a.y) * uR + uSkyv, pb = uSenter + vec2(b.x, -b.y) * uR + uSkyv;
+  vec2 d = pb - pa; float l = length(d);
+  vec2 e = l > 1e-4 ? d / l : vec2(1., 0.), n = vec2(-e.y, e.x);
+  vec2 p = (aC.x < 0. ? pa : pb) + e * aC.x * uRad + n * aC.y * uRad;
+  vP = p; vZ = aC.x < 0. ? a.z : b.z; vA = pa; vB = pb;
+  gl_Position = klipp(p);
+}`;
+const AVST_F = FARGE_F + `
+uniform float uRad;
+in vec2 vP; in float vZ; flat in vec2 vA; flat in vec2 vB; out vec4 ut;
+void main() {
+  if (vZ < 0.) discard;
+  vec2 pa = vP - vA, ba = vB - vA;
+  float h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0., 1.);
+  ut = vec4(min(length(pa - ba * h) / uRad, 1.), 0., 0., 1.);
+}`;
+const NULL_F = FARGE_F + `
+in vec3 vN; out vec4 ut;
+void main() { if (vN.z < 0.) discard; ut = vec4(0., 0., 0., 1.); }`;
+const SKYGGE_F = FARGE_F + `
+uniform sampler2D uS; uniform vec2 uFlate; uniform float uStyrke; uniform vec3 uFarge; out vec4 ut;
+void main() { float d = texture(uS, gl_FragCoord.xy / uFlate).r, a = (1. - d) * (1. - d) * uStyrke; ut = vec4(mix(vec3(1.), uFarge, a), 1.); }`;
+// Veggene er kantene av landet trukket opp på skjermen. Brikken løftes rett opp, så bare kanter som vender sørover synes.
+const VEGG_V = FELLES + `
+layout(location=0) in vec2 aC; layout(location=1) in vec3 aA; layout(location=2) in vec3 aB;
+uniform vec2 uSkyv;
+out float vH; out vec3 vW; out float vLys;
+void main() {
+  vec3 a = uRot * aA, b = uRot * aB;
+  vec2 pa = uSenter + vec2(a.x, -a.y) * uR, pb = uSenter + vec2(b.x, -b.y) * uR, e = pb - pa;
+  if ((a.z < 0. && b.z < 0.) || e.x >= 0.) { gl_Position = vec4(2., 2., 0., 1.); return; }
+  float t = aC.x * .5 + .5, h = aC.y * .5 + .5;
+  vec2 n = normalize(vec2(e.y, -e.x));
+  vLys = .8 + .2 * dot(n, normalize(vec2(-1., .3)));
+  vH = h; vW = mix(aA, aB, t);
+  gl_Position = klipp(mix(pa, pb, t) + uSkyv * h);
+}`;
+const VEGG_F = FARGE_F + `
+uniform float uR; uniform vec3 uTre, uTreMork, uKant;
+in float vH; in vec3 vW; in float vLys; out vec4 ut;
+void main() {
+  vec3 w = normalize(vW);
+  float aare = skalert(w, uR, 30.) * 4., s = .5 + .5 * sin((vH * 1.6 + aare) * 6.2832), fin = skalert(w * 1.7, uR, 2.);
+  vec3 c = mix(uTreMork, uTre, .35 + .4 * s + .25 * fin);
+  c *= vLys * mix(.55, 1., smoothstep(0., .5, vH));
+  c = mix(c, uKant, smoothstep(.8, .86, vH));  // papiret som er limt på toppen
+  ut = vec4(c, 1.);
+}`;
+let pAvst, pNull, pSkygge, pVegg;
+if (TEMA.pergament) { pAvst = program(AVST_V, AVST_F); pNull = program(LAND_V, NULL_F); pSkygge = program(HAV_V, SKYGGE_F); pVegg = program(VEGG_V, VEGG_F); }
+const halvFlyt = TEMA.pergament && gl.getExtension("EXT_color_buffer_float"), AVST_SKALA = 3;  // feltet regnes i en tredjedel av oppløsningen
+function fbo(gammel) {
+  const w = Math.max(1, Math.ceil(W / AVST_SKALA)), h = Math.max(1, Math.ceil(H / AVST_SKALA));
+  if (gammel && gammel.w === w && gammel.h === h) return gammel;
+  if (gammel) { gl.deleteTexture(gammel.tex); gl.deleteFramebuffer(gammel.fb); }
+  gl.activeTexture(gl.TEXTURE3);
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, halvFlyt ? gl.R16F : gl.R8, w, h, 0, gl.RED, halvFlyt ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE, null);
+  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+  const fb = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.activeTexture(gl.TEXTURE0);
+  return { tex, fb, w, h };
+}
+let fbA = null, fbS = null;
+
 const GEO = byggGeometri();
 const vaoHav = gl.createVertexArray();
 const vaoLand = gl.createVertexArray();
@@ -950,21 +1122,22 @@ function strekVao(data) {
   gl.bindVertexArray(v);
   gl.bindBuffer(gl.ARRAY_BUFFER, hjorner);
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  const b = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, b);
   gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
   gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 28, 0); gl.vertexAttribDivisor(1, 1);
   gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 28, 12); gl.vertexAttribDivisor(2, 1);
   gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 28, 24); gl.vertexAttribDivisor(3, 1);
-  return { v, n: data.length / 7 };
+  return { v, b, n: data.length / 7 };
 }
 const vaoKyst = strekVao(GEO.streker), vaoNett = strekVao(GEO.nett);
 gl.bindVertexArray(null);
 
-// ---- farger per land: tre rader i en liten tekstur (fyll+skravur, grense, utheving) som tones mot målet
-const N = ALLE.length, tabell = new Uint8Array(N * 3 * 4), naa = new Float32Array(N * 3 * 4), mot = new Float32Array(N * 3 * 4), treg = new Uint8Array(N);
+// ---- farger per land: fire rader i en liten tekstur (fyll+skravur, grense, utheving, akvarell) som tones mot målet
+const RADER = 4, N = ALLE.length, tabell = new Uint8Array(N * RADER * 4), naa = new Float32Array(N * RADER * 4), mot = new Float32Array(N * RADER * 4), treg = new Uint8Array(N);
 const tabTex = gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D, tabTex);
-gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, N, 3, 0, gl.RGBA, gl.UNSIGNED_BYTE, tabell);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, N, RADER, 0, gl.RGBA, gl.UNSIGNED_BYTE, tabell);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 let tok = null, fargerGaar = false;
@@ -978,11 +1151,25 @@ function lesTokens() {
   const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim();
   const natt = rgb(v("--bg")).reduce((a, b) => a + b) < 200;
   tok = { natt };
-  for (const n of ["bg", "grunt", "grunt2", "gradnett", "annet", "annet-kant", "ukjent", "sett", "over", "laert", "laert-kant", "kant", "maal", "maal-grunn", "feil", "regel", "tekst", "glimt"]) tok[n] = rgb(v("--" + n));
+  for (const n of ["bg", "grunt", "grunt2", "gradnett", "annet", "annet-kant", "ukjent", "sett", "over", "laert", "laert-kant", "kant", "maal", "maal-grunn", "feil", "regel", "tekst", "glimt", "bolge", "tre", "tre-mork"]) tok[n] = rgb(v("--" + n));
   tok.css = { maal: v("--maal"), halo: v("--halo"), tekst: v("--tekst"), dempet: v("--dempet"), land: v("--e-land") || v("--tekst"), hav: v("--e-hav") || v("--dempet"), bg: v("--bg"), kant: v("--kant"), feil: v("--feil"), riktig: v("--riktig"), laert: v("--laert"), laertMork: v("--laert-mork"), poeng: v("--poeng") };
 }
 const u3 = (loc, c) => gl.uniform3f(loc, c[0] / 255, c[1] / 255, c[2] / 255);
 let hover = null;
+// Pergament: hvert land har sin akvarellfarge, ulik nabolandenes. Fargen fylles inn etter hvert som landet læres.
+const PALETT = { dag: [[201, 112, 98], [207, 161, 66], [124, 156, 86], [151, 117, 162], [202, 130, 72], [94, 142, 138]],
+  natt: [[170, 92, 80], [172, 136, 58], [106, 136, 78], [128, 100, 140], [166, 108, 62], [80, 124, 120]] };
+const FARGENR = (() => {
+  const nr = {}, bruk = [0, 0, 0, 0, 0, 0];
+  for (const l of [...DATA.land].sort((a, b) => b.nb.length - a.nb.length || a.a3.localeCompare(b.a3))) {
+    const opptatt = new Set(l.nb.map(a => nr[a])), ledige = [0, 1, 2, 3, 4, 5].filter(k => !opptatt.has(k));
+    const k = (ledige.length ? ledige : [0, 1, 2, 3, 4, 5]).reduce((a, b) => bruk[b] < bruk[a] ? b : a);
+    nr[l.a3] = k; bruk[k]++;
+  }
+  return nr;
+})();
+const vaskFarge = l => PALETT[tok.natt ? "natt" : "dag"][FARGENR[l.a3] ?? 0];
+const VASK = { ukjent: 0, sett: .2, over: .45, laert: 1 };
 function settFarger(straks) {
   const o = S.opp, del = S.del, niv = o.niv, aktive = new Set(landI(del)), m = S.navn ? LAND[o.maal] : null;
   const blindt = niv === 2 && o.fase === "quiz", zoomet = niv === 3;
@@ -1001,6 +1188,8 @@ function settFarger(straks) {
     const r1 = i + N * 4, r2 = i + N * 8;
     mot[r1] = kant[0]; mot[r1 + 1] = kant[1]; mot[r1 + 2] = kant[2]; mot[r1 + 3] = kb / 8 * 255;
     mot[r2] = hoy[0]; mot[r2 + 1] = hoy[1]; mot[r2 + 2] = hoy[2]; mot[r2 + 3] = hb / 8 * 255;
+    const r3 = i + N * 12, vask = TEMA.pergament && egen ? VASK[s] || 0 : 0, vf = vask ? vaskFarge(l) : fyll;
+    mot[r3] = vf[0]; mot[r3 + 1] = vf[1]; mot[r3 + 2] = vf[2]; mot[r3 + 3] = vask * 255;
   }
   if (straks) naa.set(mot);
   fargerGaar = true;
@@ -1010,8 +1199,8 @@ function toneFarger(dt) {
   if (!fargerGaar) return;
   const a = 1 - Math.exp(-dt / 110), b = 1 - Math.exp(-dt / 420);
   let igjen = false;
-  for (let r = 0; r < 3; r++) for (let id = 0; id < N; id++) {
-    const k = treg[id] && r === 0 ? b : a, i = (r * N + id) * 4;
+  for (let r = 0; r < RADER; r++) for (let id = 0; id < N; id++) {
+    const k = treg[id] && (r === 0 || r === 3) ? b : a, i = (r * N + id) * 4;
     for (let j = 0; j < 4; j++) {
       const d = mot[i + j] - naa[i + j];
       if (Math.abs(d) > .4) { naa[i + j] += d * k; igjen = true; } else naa[i + j] = mot[i + j];
@@ -1019,7 +1208,7 @@ function toneFarger(dt) {
     }
   }
   gl.bindTexture(gl.TEXTURE_2D, tabTex);
-  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, N, 3, gl.RGBA, gl.UNSIGNED_BYTE, tabell);
+  gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, N, RADER, gl.RGBA, gl.UNSIGNED_BYTE, tabell);
   fargerGaar = igjen;
 }
 
@@ -1152,14 +1341,20 @@ function nullstillZoom(anim) {
 
 // ---- tegning
 function tegnFlate() {
-  gl.viewport(0, 0, flate.width, flate.height);
   const felles = q => { gl.useProgram(q.p); gl.uniform2f(q.u.uSenter, senter[0], senter[1]); gl.uniform2f(q.u.uSkjerm, W, H); gl.uniform1f(q.u.uR, kam.R);
-    if (q.u.uRot) gl.uniformMatrix3fv(q.u.uRot, true, rot); if (q.u.uDpr) gl.uniform1f(q.u.uDpr, DPR); if (q.u.uLys) gl.uniform1f(q.u.uLys, tok.natt ? .55 : .16); };
+    if (q.u.uRot) gl.uniformMatrix3fv(q.u.uRot, true, rot); if (q.u.uDpr) gl.uniform1f(q.u.uDpr, DPR); if (q.u.uLys) gl.uniform1f(q.u.uLys, tok.natt ? .55 : .16);
+    if (q.u.uSkyv) gl.uniform2f(q.u.uSkyv, 0, 0); if (q.u.uLoft) gl.uniform1f(q.u.uLoft, 0);
+    if (q.u.uFlate) gl.uniform2f(q.u.uFlate, flate.width, flate.height); if (q.u.uAvst) gl.uniform1i(q.u.uAvst, 1); if (q.u.uRad) gl.uniform1f(q.u.uRad, avstRad()); };
+  const loft = brikkeLoft();
+  if (TEMA.pergament) avstandsfelt(felles, loft);
+  gl.viewport(0, 0, flate.width, flate.height);
   gl.disable(gl.BLEND);
   felles(pHav);
   u3(pHav.u.uHav, tok.bg); u3(pHav.u.uRing, tok.regel);
   const ute = tok.natt ? tok.bg.map(v => v * .55) : tok.bg.map(v => v * .965);
-  u3(pHav.u.uUte, ute); gl.uniform3f(pHav.u.uGlod, tok.natt ? .05 : 0, tok.natt ? .09 : 0, tok.natt ? .11 : 0);
+  u3(pHav.u.uUte, ute);
+  if (TEMA.pergament) { u3(pHav.u.uBlekk, tok.bolge); u3(pHav.u.uGrunt, tok.grunt); gl.uniform3f(pHav.u.uGlod, tok.natt ? .1 : 0, tok.natt ? .07 : 0, tok.natt ? .03 : 0); }  // stearinlys
+  else gl.uniform3f(pHav.u.uGlod, tok.natt ? .05 : 0, tok.natt ? .09 : 0, tok.natt ? .11 : 0);
   gl.bindVertexArray(vaoHav);
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -1174,9 +1369,11 @@ function tegnFlate() {
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, vao.n);
   };
   strek(vaoNett, 0, .7, tok.gradnett);
-  const baand = Math.max(.3, Math.min(1, Math.sqrt(kam.R / 1000)));  // grunnbåndene følger kystlinjen i samme bredde, men krymper når kula er langt unna
-  strek(vaoKyst, 0, 24 * baand, tok.grunt2);
-  strek(vaoKyst, 0, 10 * baand, tok.grunt);
+  if (!TEMA.pergament) {  // på pergamentet er det blekklinjene i havet som følger kysten
+    const baand = Math.max(.3, Math.min(1, Math.sqrt(kam.R / 1000)));  // grunnbåndene følger kystlinjen i samme bredde, men krymper når kula er langt unna
+    strek(vaoKyst, 0, 24 * baand, tok.grunt2);
+    strek(vaoKyst, 0, 10 * baand, tok.grunt);
+  }
 
   gl.disable(gl.BLEND);
   felles(pLand);
@@ -1188,7 +1385,92 @@ function tegnFlate() {
   felles(pStrek);
   strek(vaoKyst, 1);
   strek(vaoKyst, 2);
+  if (loft > .05) tegnBrikke(felles, strek, loft);
   gl.bindVertexArray(null);
+}
+
+// ---- pergament: brikken
+const avstRad = () => 36 * Math.max(.5, Math.min(1, Math.sqrt(kam.R / 1000)));  // blekklinjene tettes når kula er langt unna
+const LOFT = () => W <= 720 ? 9 : 14;  // så høyt brikken løftes, i skjermpunkter
+const brikke = { l: null, h: 0, v: 0, mal: 0, topp: null, kant: null };
+const brikkeLoft = () => brikke.topp ? brikke.h * LOFT() : 0;
+const skyggeSkyv = loft => [loft * .55, loft * .8];  // lyset kommer oppe fra venstre
+const loftet = (p, ja) => { const L = ja ? brikkeLoft() : 0; return p && L ? [p[0], p[1] - L] : p; };
+// Landet spørsmålet gjelder, løftes ut. I Finn skjer det først når svaret er gitt, ellers ville brikken røpe svaret.
+const brikkeFor = o => TEMA.pergament && S.navn && !o.fullfort && !(o.niv === 2 && o.fase === "quiz") ? LAND[o.maal] : null;
+function settBrikke(l) {
+  for (const x of [brikke.topp, brikke.kant]) if (x) { gl.deleteVertexArray(x.v); gl.deleteBuffer(x.b); }
+  Object.assign(brikke, { l, h: 0, v: 0, topp: null, kant: null });
+  if (!l) return;
+  const t = { v: gl.createVertexArray(), b: gl.createBuffer(), n: l.fln };
+  gl.bindVertexArray(t.v);
+  gl.bindBuffer(gl.ARRAY_BUFFER, t.b);
+  gl.bufferData(gl.ARRAY_BUFFER, GEO.flater.subarray(l.fl0 * 4, (l.fl0 + l.fln) * 4), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 16, 0);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 16, 12);
+  brikke.topp = t;
+  brikke.kant = strekVao(GEO.streker.subarray(l.st0 * 7, (l.st0 + l.stn) * 7));
+  gl.bindVertexArray(null);
+}
+// Fjær: brikken spretter litt over når den kommer opp, og legger seg rolig ned igjen.
+function styrBrikke(dt) {
+  if (!TEMA.pergament) return false;
+  const vil = brikkeFor(S.opp);
+  if (ROLIG()) { if (vil !== brikke.l) settBrikke(vil); brikke.h = vil ? 1 : 0; return false; }
+  if (vil !== brikke.l) {
+    if (brikke.l && brikke.h > .01) brikke.mal = 0;
+    else { settBrikke(vil); brikke.mal = vil ? 1 : 0; }
+  } else brikke.mal = vil ? 1 : 0;
+  const ned = brikke.mal === 0, k = ned ? 9e-4 : 3.2e-4, c = ned ? .06 : .017;
+  for (let t = dt; t > 0; t -= 4) {
+    const d = Math.min(4, t);
+    brikke.v += (k * (brikke.mal - brikke.h) - c * brikke.v) * d;
+    brikke.h += brikke.v * d;
+    if (brikke.h < 0) { brikke.h = 0; brikke.v = 0; }
+  }
+  const igjen = Math.abs(brikke.v) > 1e-5 || Math.abs(brikke.mal - brikke.h) > 2e-3;
+  if (!igjen) { brikke.h = brikke.mal; brikke.v = 0; }
+  return igjen || brikke.l !== vil;
+}
+function avstandsfelt(felles, loft) {
+  const tegn = (fb, rad, sx, sy, vao) => {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb.fb); gl.viewport(0, 0, fb.w, fb.h);
+    gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+    felles(pAvst); gl.uniform1f(pAvst.u.uRad, rad); gl.uniform2f(pAvst.u.uSkyv, sx, sy);
+    gl.bindVertexArray(vao.v); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, vao.n);
+  };
+  gl.enable(gl.BLEND); gl.blendEquation(gl.MIN);
+  fbA = fbo(fbA);
+  tegn(fbA, avstRad(), 0, 0, vaoKyst);
+  if (loft > .05) {  // skyggen: samme felt for brikkens omriss alene, forskjøvet bort fra lyset; innsiden er null
+    fbS = fbo(fbS);
+    const [sx, sy] = skyggeSkyv(loft);
+    tegn(fbS, 3 + loft * .9, sx, sy, brikke.kant);
+    felles(pNull); gl.uniform2f(pNull.u.uSkyv, sx, sy);
+    gl.bindVertexArray(brikke.topp.v); gl.drawArrays(gl.TRIANGLES, 0, brikke.topp.n);
+  }
+  gl.blendEquation(gl.FUNC_ADD); gl.disable(gl.BLEND);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, fbA.tex);
+  if (fbS) { gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, fbS.tex); }
+  gl.activeTexture(gl.TEXTURE0);
+}
+function tegnBrikke(felles, strek, loft) {
+  gl.enable(gl.BLEND); gl.blendFunc(gl.DST_COLOR, gl.ZERO);  // skyggen ganges inn i det som ligger under
+  gl.useProgram(pSkygge.p); gl.uniform1i(pSkygge.u.uS, 2); gl.uniform2f(pSkygge.u.uFlate, flate.width, flate.height);
+  gl.uniform1f(pSkygge.u.uStyrke, (tok.natt ? .6 : .38) * Math.min(1, brikke.h * 1.4)); u3(pSkygge.u.uFarge, tok.natt ? [8, 5, 2] : [72, 50, 30]);
+  gl.bindVertexArray(vaoHav); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.disable(gl.BLEND);
+  felles(pVegg); gl.uniform2f(pVegg.u.uSkyv, 0, -loft);
+  u3(pVegg.u.uTre, tok.tre); u3(pVegg.u.uTreMork, tok["tre-mork"]); u3(pVegg.u.uKant, tok.sett);
+  gl.bindVertexArray(brikke.kant.v); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, brikke.kant.n);
+  felles(pLand); gl.uniform2f(pLand.u.uSkyv, 0, -loft); gl.uniform1f(pLand.u.uLoft, brikke.h);
+  gl.uniform1i(pLand.u.uTab, 0); u3(pLand.u.uMaal, tok.maal); u3(pLand.u.uMaalGrunn, tok["maal-grunn"]);
+  gl.bindVertexArray(brikke.topp.v); gl.drawArrays(gl.TRIANGLES, 0, brikke.topp.n);
+  gl.enable(gl.BLEND);
+  felles(pStrek); gl.uniform2f(pStrek.u.uSkyv, 0, -loft);
+  strek(brikke.kant, 0, 1.3, tok.kant);
+  strek(brikke.kant, 2);
 }
 
 // ---- navn: plasseringen regnes ut med jevne mellomrom, posisjonen hvert bilde, og navn tones inn og ut i stedet for å hoppe
@@ -1397,11 +1679,11 @@ function tegnNavn(dt, now) {
   // små land: ring så de kan sees og pekes på
   pen.lineWidth = 1.2;
   for (const l of ringer) {
-    const p = aktivProj(l.lp); if (!p) continue;
+    const p = loftet(aktivProj(l.lp), l === brikke.l); if (!p) continue;
     const erMaal = l === m && !blindt;
     pen.beginPath(); pen.arc(p[0], p[1], erMaal ? 12 : 7, 0, 7);
     const st = status(S.del, o.niv, l.a3);
-    pen.strokeStyle = erMaal ? tok.css.maal : st === "laert" ? tok.css.laertMork : st === "over" && !blindt ? tok.css.laert : tok.css.kant;
+    pen.strokeStyle = TEMA.pergament && !erMaal && (st === "laert" || (st === "over" && !blindt)) ? `rgb(${vaskFarge(l)})` : erMaal ? tok.css.maal : st === "laert" ? tok.css.laertMork : st === "over" && !blindt ? tok.css.laert : tok.css.kant;
     pen.lineWidth = erMaal ? 2.2 : 1.2; pen.stroke();
     if (erMaal && now < pulsTil && !ROLIG()) {
       const t = ((now - pulsTil) % 2400 + 2400) % 2400 / 2400;
@@ -1409,13 +1691,13 @@ function tegnNavn(dt, now) {
     }
   }
   for (const d of prikker) {
-    const p = aktivProj(d.ll); if (!p) continue;
+    const p = loftet(aktivProj(d.ll), !d.l); if (!p) continue;
     pen.beginPath(); pen.arc(p[0], p[1], d.skjult ? 3.5 : 2.4, 0, 7);
     pen.fillStyle = d.skjult ? tok.css.maal : tok.css.bg; pen.fill();
     pen.strokeStyle = d.skjult ? tok.css.maal : tok.css.tekst; pen.lineWidth = 1.3; pen.stroke();
   }
   if (o.niv === 3 && o.klikk) {
-    const p = aktivProj(o.klikk.p), mh = aktivProj(m.hp);
+    const p = loftet(aktivProj(o.klikk.p), brikke.l && hvilketLand(o.klikk.p) === brikke.l), mh = loftet(aktivProj(m.hp), true);
     if (p) {
       if (mh) { pen.beginPath(); pen.moveTo(p[0], p[1]); pen.lineTo(mh[0], mh[1]); pen.strokeStyle = tok.css.maal; pen.setLineDash([3, 3]); pen.lineWidth = 1.2; pen.stroke(); pen.setLineDash([]); }
       pen.strokeStyle = o.klikk.ok ? tok.css.riktig : tok.css.feil; pen.lineWidth = 2.4; pen.lineCap = "round";
@@ -1433,7 +1715,7 @@ function tegnNavn(dt, now) {
     e.alfa += (e.mal - e.alfa) * fart;
     if (Math.abs(e.mal - e.alfa) < .01) e.alfa = e.mal; else igjen = true;
     if (e.alfa <= 0 && !e.mal) { etiketter.delete(k); continue; }
-    const p = aktivProj(e.ll); if (!p) continue;
+    const p = loftet(aktivProj(e.ll), e.sterk); if (!p) continue;  // målets navn står på brikken
     pen.globalAlpha = e.alfa;
     pen.font = e.font; pen.textAlign = e.a; pen.letterSpacing = e.sperr ? "1px" : "0px";
     pen.strokeStyle = e.sterk ? tok.css.bg : tok.css.halo; pen.lineWidth = e.sterk ? 6 : 3;  // målets navn står på skravur og trenger en tett kant
@@ -1532,10 +1814,11 @@ function bilde(now) {
   if (flyttet && now - sistPlassert > 110) { plasserNavn(); sistPlassert = now; }
   if (stille && !varStille) { plasserNavn(); regnGradtall(); bunnlinje(); }
   varStille = stille;
+  const brikkeGaar = styrBrikke(dt);
   tegnFlate();
   tegnNavn(dt, now);
   dreiRose();
-  if (!stille || fargerGaar || navnGaar || blink.length || now < pulsTil) vekk(); else sist = 0;
+  if (!stille || fargerGaar || navnGaar || brikkeGaar || blink.length || now < pulsTil) vekk(); else sist = 0;
 }
 
 let forrigeMal = null;
@@ -1583,7 +1866,9 @@ function klikk(xy) {
   if (o.fase !== "quiz") return;
   if (o.niv === 2) { const l = landUnder(xy); if (l) klikkLand(l.a3); return; }
   if (o.niv === 3 && o.steg === "klikk") {
-    const ll = aktivProj.invert(xy);
+    let ll = aktivProj.invert(xy);
+    const L = brikkeLoft(), lp = L ? aktivProj.invert([xy[0], xy[1] + L]) : null;
+    if (lp && hvilketLand(lp) === brikke.l) ll = lp;
     if (!ll) return;
     plasserHst(ll);
     endret();
