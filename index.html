@@ -730,8 +730,9 @@ function nesteOppgave() {
 }
 
 // Riktig gir ett steg mot lært, riktig med tips et halvt (uten å bryte rekka), feil starter landet på nytt.
-// Poeng: 100 for riktig (50 med tips), opptil 50 i fartsbonus, ganget med rekka. Feil gir 0 og bryter rekka.
+// Poeng: 100 for riktig (50 med tips), opptil 50 i fartsbonus, ganget med rekka og nivået. Feil gir 0 og bryter rekka.
 const gangeFor = r => r >= 10 ? 4 : r >= 6 ? 3 : r >= 3 ? 2 : 1;
+const NIV_GANGE = { 1: 1, 2: 1.5, 3: 2 };  // høyere nivå gir mer; databasen har taket 2700 per land (600 + 900 + 1200)
 // En ekspedisjon er ti spørsmål på samme verdensdel og nivå, og ender med et sluttkort som viser turen.
 // Bytter du verdensdel eller nivå underveis, begynner en ny.
 const EKS = 10;
@@ -748,7 +749,7 @@ function gi(riktig, halv) {
   k.d = S.steg + (k.b < LAERT ? 4 : 40);  // det du ikke kan ennå, kommer snart igjen
   const gange = gangeFor(S.rekke), sek = (Date.now() - (o.start || 0)) / 1000, ganger = o.niv === 3 ? 2 : 1;  // på nivå 3 er det to steg
   const fart = !riktig || halv ? 0 : sek <= 6 * ganger ? 50 : sek <= 12 * ganger ? 25 : 0;
-  const poeng = riktig && !k.g ? ((halv ? 50 : 100) + fart) * gange : 0;  // hvert land gir poeng én gang per nivå, så topplisten ikke belønner å spille lengst
+  const poeng = riktig && !k.g ? Math.round(((halv ? 50 : 100) + fart) * gange * NIV_GANGE[o.niv]) : 0;  // hvert land gir poeng én gang per nivå, så topplisten ikke belønner å spille lengst
   if (riktig) k.g = 1;
   S.poeng = (S.poeng || 0) + poeng;
   (S.delPoeng ||= {})[o.del] = (S.delPoeng[o.del] || 0) + poeng;
@@ -791,7 +792,10 @@ function plasserHst(lonlat) {  // nivå 3, første steg
 function besvarHst(tekst, gaOpp) {  // nivå 3, andre steg
   const o = S.opp, treff = gaOpp ? null : tolk(tekst, "hst", o.maal);
   Object.assign(o, { skrevet: gaOpp ? "" : tekst.trim(), treff });
-  gi(!!o.klikk?.ok && treff === o.maal, o.tips > 0 || o.stedTips > 0);
+  // Navn og plassering er to halvdeler: én av to riktig teller halvt, som et svar med tips (50 poeng, rekka holder).
+  const sted = !!o.klikk?.ok, navnOk = treff === o.maal;
+  o.delvis = sted !== navnOk ? (navnOk ? "navn" : "sted") : null;
+  gi(sted || navnOk, o.tips > 0 || o.stedTips > 0 || !!o.delvis);
 }
 
 function neste() {
@@ -2408,13 +2412,13 @@ function tegnPanel() {
   } else if (quiz && o.steg === "klikk") {
     settTittel(`Hvor ligger hovedstaden i ${m.n}?`, false);
     st.textContent = "Klikk der du tror den ligger.";
-    $("#hint").textContent = `Godkjent innenfor ${Math.round(toleranse(m))} km.`;
+    $("#hint").textContent = `Godkjent innenfor ${Math.round(toleranse(m))} km. Plassering og navn teller halvparten hver.`;
   } else if (quiz) {
     settTittel("Hva heter den?", false);
     if (!o.klikk) st.textContent = "Du hoppet over plasseringen.";
     else { st.textContent = o.klikk.ok ? `Riktig plassert, ${Math.round(o.klikk.km)} km unna.` : `${Math.round(o.klikk.km)} km unna. Hovedstaden er prikken på kartet.`; st.className = o.klikk.ok ? "riktig" : "feil"; }
     $("#svar").placeholder = "Hovedstad";
-    $("#hint").textContent = "";
+    $("#hint").textContent = o.klikk?.ok ? "" : "Riktig navn gir fortsatt halv uttelling.";
   } else {
     settTittel(o.fullfort ? `${NIVAA[o.niv]} ferdig` : m.n, true);
     if (o.fase === "ny") {
@@ -2425,7 +2429,9 @@ function tegnPanel() {
     else if (o.riktig) {
       st.className = "riktig";
       const pluss = o.poeng ? `, +${tall(o.poeng)} poeng` : "";
-      st.textContent = o.halv ? `Riktig med tips${pluss}. Teller halvt.` : `Riktig${pluss}.`;
+      st.textContent = o.delvis === "navn" ? `Riktig navn, men ${o.klikk ? `${Math.round(o.klikk.km)} km unna` : "uten plassering"}${pluss}. Teller halvt.`
+        : o.delvis === "sted" ? `Riktig plassert, men feil navn${pluss}. Teller halvt.`
+        : o.halv ? `Riktig med tips${pluss}. Teller halvt.` : `Riktig${pluss}.`;
     } else {
       st.className = "feil";
       if (o.niv === 2) st.textContent = o.gaOpp ? "Her er landet." : `Feil. Du klikket på ${navn(o.treff)}.`;
