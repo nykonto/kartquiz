@@ -34,7 +34,7 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
 .forklaring i { display: inline-block; }
 #poengrad { display: flex; align-items: baseline; }
 #rekke { display: inline-block; flex: 1; }
-#lyd, #toppknapp, #nytt, #toppfaner button { cursor: pointer; font: inherit; }
+#lyd, #toppknapp, #nytt, #igjen, #toppfaner button { cursor: pointer; font: inherit; }
 .boks { position: absolute; z-index: 6; display: flex; flex-direction: column; box-sizing: border-box; }
 .uten-navn #panel, .uten-navn #zoomknapper, .uten-navn #bunnlinje, .uten-navn #kart { display: none; }
 #spillernavn { min-width: 0; }
@@ -307,8 +307,8 @@ h1::before, h1::after { content: ""; flex: var(--pynt-bredde); height: var(--pyn
 #lyd { background: none; border: 0; padding: 0; color: var(--dempet); font: 500 13px var(--f-tekst); text-decoration: underline; text-underline-offset: 3px; }
 #lyd:hover { color: var(--tekst); }
 #lyd:focus-visible { outline: 2px solid var(--fokus); outline-offset: 2px; }
-#toppknapp, #nytt { background: none; border: 0; padding: 0; color: var(--dempet); font: 500 13px var(--f-tekst); text-decoration: underline; text-underline-offset: 3px; }
-#toppknapp:hover, #nytt:hover { color: var(--tekst); }
+#toppknapp, #nytt, #igjen { background: none; border: 0; padding: 0; color: var(--dempet); font: 500 13px var(--f-tekst); text-decoration: underline; text-underline-offset: 3px; }
+#toppknapp:hover, #nytt:hover, #igjen:hover { color: var(--tekst); }
 #toppknapp:focus-visible, #nytt:focus-visible, #toppfaner button:focus-visible { outline: 2px solid var(--fokus); outline-offset: 2px; }
 .boks { padding: 28px; gap: 16px; background: var(--tekstur), var(--felt); color: var(--tekst); border: 2px solid var(--regel); border-image: var(--panel-kant); outline: 1px solid var(--regel); outline-offset: 3px; }
 .boks p { margin: 0; }
@@ -333,7 +333,7 @@ h1::before, h1::after { content: ""; flex: var(--pynt-bredde); height: var(--pyn
 #toppliste li.meg { color: var(--poeng); font-weight: 700; }
 #toppmelding { color: var(--dempet); font-size: 15px; }
 #toppmelding:empty { display: none; }
-#nytt { align-self: flex-start; }
+#nytt, #igjen { align-self: flex-start; }
 @media (max-width: 720px) { #topp { left: 14px; right: 14px; top: 14px; bottom: 14px; width: auto; } #spillernavn { font-size: 28px; } }
 #tipslinje { font: 600 24px var(--f-tekst); letter-spacing: .08em; color: var(--maal); }
 #tipslinje .setning { font: 500 17px/1.35 var(--f-tekst); letter-spacing: 0; color: var(--tekst); }
@@ -418,6 +418,7 @@ for (const f of Object.values(TEMA.fonter)) document.fonts?.load(f);  // lerrete
       </div>
       <div class="maaler" aria-hidden="true"><i id="maaler" style="width:0"></i></div>
       <div id="framdrift"></div>
+      <button type="button" id="igjen" hidden>Spill nivået på nytt for bedre poeng</button>
       <div class="forklaring">
         <span><i class="f-laert"></i>Lært</span>
         <span><i class="f-over"></i>Øver på</span>
@@ -701,6 +702,15 @@ function nesteOppgave() {
   const nylig = S.hist.slice(-2), ulaert = intro.filter(a3 => kort[a3].b < LAERT);
   const forfalt = ulaert.filter(a3 => (kort[a3].d ?? 0) <= S.steg && !nylig.includes(a3));
   const steg = niv === 3 ? "klikk" : null;
+  const runde = S.igjen?.[del + "/" + niv];
+  const igjen = runde ? rekkefolge(del, niv, "quiz/" + runde).filter(a3 => kort[a3] && !kort[a3].g && kort[a3].i !== runde) : [];
+  if (igjen.length && (!forfalt.length || S.repetert)) {
+    const a3 = igjen[0];
+    Object.assign(kort[a3], { s: S.steg, i: runde });
+    S.repetert = false;
+    S.opp = { del, niv, fase: "quiz", maal: a3, steg, tips: 0 };
+    return;
+  }
   if (nye.length && (!forfalt.length || S.repetert)) {
     const a3 = nye[0];
     kort[a3] = { b: 0, r: 0, f: 0, s: S.steg };
@@ -752,7 +762,11 @@ function gi(riktig, halv) {
   eks.p += poeng; eks.best = Math.max(eks.best, S.rekke);
   Object.assign(o, { fase: "svar", riktig, halv: riktig && halv, nyLaert: før < LAERT && k.b >= LAERT, poeng, fart, gange, oppGange: gange > gangeFor(rekkeFør), brutt: !riktig && rekkeFør >= 3 ? rekkeFør : 0 });
   const [l, t] = framdrift(o.del, o.niv);
-  if (o.nyLaert && l === t) { o.fullfort = true; o.oppsum = { ...r }; S.eks = null; }  // nivået ferdig: det sluttkortet tar over
+  const nr = S.igjen?.[o.del + "/" + o.niv], kort = kortFor(o.del, o.niv);
+  if (nr && l === t && landI(o.del).every(a3 => kort[a3]?.g)) {  // en ny runde er ferdig
+    o.fullfort = true; o.igjenFerdig = nr; o.oppsum = { ...r }; S.eks = null;
+    delete S.igjen[o.del + "/" + o.niv];
+  } else if (o.nyLaert && l === t && !nr) { o.fullfort = true; o.oppsum = { ...r }; S.eks = null; }  // nivået ferdig: det sluttkortet tar over
   else o.eksSlutt = eks.svar.length >= EKS;
   if (l === t && o.niv < 3) (S.ulast[o.del] ||= {})[o.niv + 1] = true;
 }
@@ -797,7 +811,7 @@ function neste() {
     if (!har.includes(o.maal)) har.push(o.maal);
     const d = (S.dag[iDag()] ||= [0, 0, 0]); d[2] = (d[2] || 0) + 1;
   }
-  if (o.fase === "svar" && o.nyLaert && o.niv < 3) {  // svaret gjorde nivået ferdig: videre til neste
+  if (o.fase === "svar" && o.nyLaert && o.niv < 3 && !o.igjenFerdig && !S.igjen?.[o.del + "/" + o.niv]) {  // svaret gjorde nivået ferdig: videre til neste
     const [l, t] = framdrift(o.del, o.niv);
     if (l === t) S.niv[o.del] = o.niv + 1;
   }
@@ -810,6 +824,21 @@ function tilbake() {  // ett land tilbake i gjennomgangen
   S.opp = { del: o.del, niv: o.niv, fase: "ny", maal: sett.pop() };
   const d = S.dag[iDag()];
   if (d?.[2]) d[2]--;
+  endret();
+}
+// Ny runde på et ferdig nivå: poengene nivået ga trekkes fra lokalt, og hvert land kan gi poeng én gang til.
+// Det du har lært og nivåene du har låst opp, står. Topplisten oppdateres bare når den nye summen er høyere.
+function spillIgjen() {
+  const del = S.del, niv = nivFor(del), nokkel = del + "/" + niv, r = S.runde?.[nokkel], p = r?.p || 0;
+  S.delPoeng[del] = Math.max(0, (S.delPoeng[del] || 0) - p);
+  S.poeng = Math.max(0, (S.poeng || 0) - p);
+  vistPoeng = null;
+  for (const k of Object.values(kortFor(del, niv))) delete k.g;
+  S.runde[nokkel] = { p: 0, r: 0, t: 0, best: 0 };
+  (S.igjenNr ||= {})[nokkel] = (S.igjenNr[nokkel] || 0) + 1;
+  (S.igjen ||= {})[nokkel] = S.igjenNr[nokkel];
+  S.eks = null; S.rekke = 0;
+  nesteOppgave();
   endret();
 }
 function hoppGjennomgang() {
@@ -2320,7 +2349,10 @@ function tegnPanel() {
   $("#maaler").style.width = (100 * (iGjennomgang ? sett.length : l) / t) + "%";
   $(".maaler").classList.toggle("gjennomgang", iGjennomgang);
   $(".forklaring").style.display = niv > 1 ? "none" : "";  // kartet farges etter Land-nivået, så tegnforklaringen gjelder bare der
-  $("#framdrift").textContent = iGjennomgang ? `${sett.length} av ${t} ${niv === 3 ? "hovedsteder" : "land"} gjennomgått` : `${l} av ${t} ${FRAMDRIFT_ORD[niv]}`;
+  const nrIgjen = S.igjen?.[del + "/" + niv], gitt = landI(del).filter(a3 => kortFor(del, niv)[a3]?.g).length;
+  $("#igjen").hidden = !(l === t && !nrIgjen);
+  if (nrIgjen) $("#maaler").style.width = (100 * gitt / t) + "%";
+  $("#framdrift").textContent = nrIgjen ? `Ny runde: ${gitt} av ${t} har gitt poeng` : iGjennomgang ? `${sett.length} av ${t} ${niv === 3 ? "hovedsteder" : "land"} gjennomgått` : `${l} av ${t} ${FRAMDRIFT_ORD[niv]}`;
 
   const st = $("#status"), fakta = $("#fakta"), quiz = o.fase === "quiz";
   const skriv = quiz && (o.niv === 1 || (o.niv === 3 && o.steg === "navn"));
@@ -2405,7 +2437,7 @@ function tegnPanel() {
     }
     if (o.fase === "svar" && o.brutt) st.textContent += ` Rekka på ${o.brutt} er brutt.`;
     if (o.fullfort) {
-      st.textContent = `${m.n} var det siste. Du kan alle ${landI(o.del).length} i ${o.del}.`;
+      st.textContent = o.igjenFerdig ? `Runden er ferdig. Topplisten beholder din beste sum i ${o.del}.` : `${m.n} var det siste. Du kan alle ${landI(o.del).length} i ${o.del}.`;
       rad("Poeng", tall(o.oppsum.p));
       rad("Riktige", `${o.oppsum.r} av ${o.oppsum.t}`);
       rad("Beste rekke", tall(o.oppsum.best));
@@ -2595,6 +2627,19 @@ $("#nytt").onclick = () => {
 };
 $("#lyd").onclick = () => { S.lyd = S.lyd === false; lagre(); tegnPoeng(); lyd("riktig", 2); };
 $("#hopp").onclick = hoppGjennomgang;
+let igjenTimer;
+$("#igjen").onclick = () => {
+  const b = $("#igjen");
+  clearTimeout(igjenTimer);
+  if (!b.dataset.klar) {
+    b.dataset.klar = "1";
+    b.textContent = "Poengene for nivået nullstilles her, men topplisten beholder den beste summen. Trykk igjen for å starte.";
+    igjenTimer = setTimeout(() => { b.dataset.klar = ""; b.textContent = "Spill nivået på nytt for bedre poeng"; }, 6000);
+    return;
+  }
+  b.dataset.klar = ""; b.textContent = "Spill nivået på nytt for bedre poeng";
+  spillIgjen();
+};
 $("#tilbake").onclick = tilbake;
 for (const n of [1, 2, 3]) $("#niv" + n).onclick = () => byttNiv(n);
 addEventListener("keydown", e => {
