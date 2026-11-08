@@ -57,6 +57,16 @@ body { background: var(--bg); color: var(--tekst); font-family: var(--f-tekst); 
 #skalastrek { display: inline-flex; }
 #skalastrek i { display: block; }
 @media (max-width: 720px) { .forklaring, #fot, #bunnlinje { display: none !important; } }
+/* ekspedisjonen: ti merker, ett per spørsmål, fylt med svaret */
+#ekspedisjon { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+#ekspedisjon[hidden] { display: none; }
+#eksnavn { font-size: 14px; color: var(--dempet); letter-spacing: .04em; }
+#eksspor { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
+#eksspor li { width: 9px; height: 9px; box-sizing: border-box; border: 1.3px solid var(--kant); transform: rotate(45deg); opacity: .7; }
+#eksspor li.riktig { background: var(--riktig); border-color: var(--riktig); opacity: 1; }
+#eksspor li.halv { background: linear-gradient(135deg, var(--riktig) 50%, transparent 50%); border-color: var(--riktig); opacity: 1; }
+#eksspor li.feil { background: var(--feil); border-color: var(--feil); opacity: 1; }
+#eksspor li.naa { border: 2px solid var(--tekst); opacity: 1; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -416,6 +426,7 @@ for (const f of Object.values(TEMA.fonter)) document.fonts?.load(f);  // lerrete
       </div>
     </div>
     <section id="oppgave" tabindex="-1" aria-live="polite">
+      <div id="ekspedisjon" hidden><span id="eksnavn"></span><ol id="eksspor"></ol></div>
       <h2 id="tittel"></h2>
       <p id="status"></p>
       <dl id="fakta"></dl>
@@ -614,7 +625,7 @@ function tipsRing(o, m) {
 
 // ---------------------------------------------------------------- læring
 // Kort per verdensdel og nivå: «Europa/1» (land), «Europa/2» (finn), «Europa/3» (hovedsteder).
-const nyTilstand = () => ({ v: 3, fro: Math.random() * 2 ** 32 >>> 0, del: "Europa", niv: {}, kort: {}, sett: {}, harSett: {}, steg: 0, opp: null, hist: [], rekke: 0, poeng: 0, delPoeng: {}, best: 0, runde: {}, lyd: true, navn: "", nokkel: "", dag: {}, ulast: {}, t: 0 });
+const nyTilstand = () => ({ v: 3, fro: Math.random() * 2 ** 32 >>> 0, del: "Europa", niv: {}, kort: {}, sett: {}, harSett: {}, steg: 0, opp: null, hist: [], rekke: 0, poeng: 0, delPoeng: {}, best: 0, runde: {}, lyd: true, navn: "", nokkel: "", dag: {}, ulast: {}, t: 0, eks: null, eksNr: 0 });
 let S = nyTilstand();
 const kortFor = (del, niv) => (S.kort[del + "/" + niv] ||= {});
 // Gjennomgangen: land du har sett navnet på før spørsmålene starter (nivå 1 og 3). true = ferdig eller hoppet over.
@@ -711,6 +722,13 @@ function nesteOppgave() {
 // Riktig gir ett steg mot lært, riktig med tips et halvt (uten å bryte rekka), feil starter landet på nytt.
 // Poeng: 100 for riktig (50 med tips), opptil 50 i fartsbonus, ganget med rekka. Feil gir 0 og bryter rekka.
 const gangeFor = r => r >= 10 ? 4 : r >= 6 ? 3 : r >= 3 ? 2 : 1;
+// En ekspedisjon er ti spørsmål på samme verdensdel og nivå, og ender med et sluttkort som viser turen.
+// Bytter du verdensdel eller nivå underveis, begynner en ny.
+const EKS = 10;
+function gjeldendeEks(o) {
+  if (!S.eks || S.eks.del !== o.del || S.eks.niv !== o.niv) S.eks = { nr: (S.eksNr || 0) + 1, del: o.del, niv: o.niv, svar: [], p: 0, best: 0 };
+  return S.eks;
+}
 const tall = n => n.toLocaleString("nb-NO");
 function gi(riktig, halv) {
   const o = S.opp, k = kortFor(o.del, o.niv)[o.maal], før = k.b, rekkeFør = S.rekke;
@@ -729,9 +747,13 @@ function gi(riktig, halv) {
   r.p += poeng; r.r += riktig; r.t++; r.best = Math.max(r.best, S.rekke);
   const d = (S.dag[iDag()] ||= [0, 0]); d[0] += riktig; d[1]++; d[3] = (d[3] || 0) + poeng;
   S.hist = [...S.hist, o.maal].slice(-10);
+  const eks = gjeldendeEks(o);
+  eks.svar.push({ a3: o.maal, r: riktig ? (halv ? .5 : 1) : 0, ny: før < LAERT && k.b >= LAERT });
+  eks.p += poeng; eks.best = Math.max(eks.best, S.rekke);
   Object.assign(o, { fase: "svar", riktig, halv: riktig && halv, nyLaert: før < LAERT && k.b >= LAERT, poeng, fart, gange, oppGange: gange > gangeFor(rekkeFør), brutt: !riktig && rekkeFør >= 3 ? rekkeFør : 0 });
   const [l, t] = framdrift(o.del, o.niv);
-  if (o.nyLaert && l === t) { o.fullfort = true; o.oppsum = { ...r }; }
+  if (o.nyLaert && l === t) { o.fullfort = true; o.oppsum = { ...r }; S.eks = null; }  // nivået ferdig: det sluttkortet tar over
+  else o.eksSlutt = eks.svar.length >= EKS;
   if (l === t && o.niv < 3) (S.ulast[o.del] ||= {})[o.niv + 1] = true;
 }
 
@@ -760,6 +782,14 @@ function besvarHst(tekst, gaOpp) {  // nivå 3, andre steg
 
 function neste() {
   const o = S.opp;
+  if (o.fase === "svar" && o.eksSlutt) {  // tiende svar: sluttkortet med turen
+    S.eksNr = S.eks.nr;
+    S.opp = { del: o.del, niv: o.niv, fase: "slutt", maal: o.maal, eks: S.eks };
+    S.eks = null;
+    endret();
+    feirTur(S.opp);
+    return;
+  }
   if (o.fase === "ny") {
     const sett = settFor(o.del, o.niv);
     if (sett !== true) sett.push(o.maal);
@@ -1263,7 +1293,7 @@ function lesTokens() {
   const cs = getComputedStyle(document.documentElement), v = n => cs.getPropertyValue(n).trim();
   const natt = rgb(v("--bg")).reduce((a, b) => a + b) < 200;
   tok = { natt };
-  for (const n of ["bg", "grunt", "grunt2", "gradnett", "annet", "annet-kant", "ukjent", "sett", "over", "laert", "laert-kant", "kant", "maal", "maal-grunn", "feil", "regel", "tekst", "glimt", "bolge", "tre", "tre-mork", "elv", "innsjo"]) tok[n] = rgb(v("--" + n));
+  for (const n of ["bg", "grunt", "grunt2", "gradnett", "annet", "annet-kant", "ukjent", "sett", "over", "laert", "laert-kant", "kant", "maal", "maal-grunn", "feil", "regel", "tekst", "glimt", "poeng", "bolge", "tre", "tre-mork", "elv", "innsjo"]) tok[n] = rgb(v("--" + n));
   tok.css = { maal: v("--maal"), halo: v("--halo"), tekst: v("--tekst"), dempet: v("--dempet"), land: v("--e-land") || v("--tekst"), hav: v("--e-hav") || v("--dempet"), bg: v("--bg"), kant: v("--kant"), feil: v("--feil"), riktig: v("--riktig"), laert: v("--laert"), laertMork: v("--laert-mork"), poeng: v("--poeng") };
 }
 const u3 = (loc, c) => gl.uniform3f(loc, c[0] / 255, c[1] / 255, c[2] / 255);
@@ -1283,8 +1313,10 @@ const FARGENR = (() => {
 const vaskFarge = l => PALETT[tok.natt ? "natt" : "dag"][FARGENR[l.a3] ?? 0];
 const VASK = { ukjent: 0, sett: .2, over: .45, laert: 1 };
 function settFarger(straks) {
-  const o = S.opp, del = S.del, niv = o.niv, aktive = new Set(landI(del)), m = S.navn ? LAND[o.maal] : null;
+  const o = S.opp, del = S.del, niv = o.niv, aktive = new Set(landI(del)), m = S.navn && o.fase !== "slutt" ? LAND[o.maal] : null;
   const blindt = niv === 2 && o.fase === "quiz", zoomet = niv === 3;
+  const tur = new Map();  // sluttkortet: landene fra turen får gullkant, de nye kartlagte en tykkere
+  if (o.fase === "slutt") for (const s of o.eks.svar) tur.set(s.a3, tur.get(s.a3) || s.ny);
   for (const l of ALLE) {
     // Kartet farges alltid etter Land-nivået. Farget man etter Finn, ville målet alltid stått blant de blanke landene,
     // og de siste spørsmålene kunne løses ved å utelukke; framgangen på nivå 2 og 3 står i panelet.
@@ -1299,6 +1331,7 @@ function settFarger(straks) {
     if (l === m && o.fase === "svar" && o.riktig) { fyll = tok[st]; skravur = 0; hoy = tok["laert-kant"]; hb = 2.2; }  // landet kartlegges
     if (o.fase === "svar" && niv === 2 && l.a3 === o.treff && l !== m) { hoy = tok.feil; hb = 2.4; }
     if (o.fase === "svar" && niv === 2 && l === m && !o.riktig) { hoy = tok.maal; hb = 2.4; }
+    if (tur.has(l.a3)) { hoy = tok.poeng; hb = tur.get(l.a3) ? 3.2 : 1.8; }
     if (l === hover && !hb) { hoy = egen ? tok.tekst : tok.kant; hb = 1.3; }
     treg[l.id] = o.fase === "svar" && o.nyLaert && l === m ? 1 : 0;
     mot[i] = fyll[0]; mot[i + 1] = fyll[1]; mot[i + 2] = fyll[2]; mot[i + 3] = skravur * 255;
@@ -1384,6 +1417,12 @@ const hjorneSett = (b, p = 0) => [[b[0] - p, b[1] - p], [b[2] + p, b[3] + p], [b
 const foelgerLandet = o => o.niv === 1 || o.fase !== "quiz";
 function kameraFor(o) {
   const v = DATA.visning[S.del], m = LAND[o.maal];
+  if (o.fase === "slutt") {  // hele turen i bildet, men aldri lenger ut enn verdensdelen eller mer enn tre ganger nærmere
+    const hele = pass(v.skrog, v.senter[0], v.senter[1]), ls = [...new Set(o.eks.svar.map(s => s.a3))].map(a3 => LAND[a3]);
+    const c = d3.geoCentroid({ type: "MultiPoint", coordinates: ls.map(l => l.lp) });
+    const t = pass(ls.flatMap(l => hjorneSett([l.lp[0], l.lp[1], l.lp[0], l.lp[1]], 4)), c[0], c[1], .85);
+    return t.R < hele.R ? hele : { ...t, R: Math.min(t.R, hele.R * 3) };
+  }
   if (o.niv === 3 && !o.fullfort) {
     const pad = Math.max(Math.max(m.lb[2] - m.lb[0], m.lb[3] - m.lb[1]) * 0.35, 1.5);
     const hp = m.hp, h = [[hp[0] - pad / 2, hp[1] - pad / 2], [hp[0] + pad / 2, hp[1] + pad / 2]];  // hovedstaden kan ligge utenfor landets største del
@@ -1525,7 +1564,7 @@ const brikkeLoft = (b = brikke) => b.topp ? b.h * LOFT(b) : 0;
 const skyggeSkyv = loft => [loft * .55, loft * .8];  // lyset kommer oppe fra venstre
 const loftet = (p, ja) => { const L = ja ? brikkeLoft() : 0; return p && L ? [p[0], p[1] - L] : p; };
 // Landet spørsmålet gjelder, løftes ut. I Finn skjer det først når svaret er gitt, ellers ville brikken røpe svaret.
-const brikkeFor = o => TEMA.pergament && S.navn && !o.fullfort && !(o.niv === 2 && o.fase === "quiz") ? LAND[o.maal] : null;
+const brikkeFor = o => TEMA.pergament && S.navn && !o.fullfort && o.fase !== "slutt" && !(o.niv === 2 && o.fase === "quiz") ? LAND[o.maal] : null;
 const svevFor = o => TEMA.pergament && S.navn && o.niv === 2 && o.fase === "quiz" && hover && LAND[hover.a3] && landI(S.del).includes(hover.a3) ? hover : null;
 function settBrikke(b, l) {
   for (const x of [b.topp, b.kant]) if (x) { gl.deleteVertexArray(x.v); gl.deleteBuffer(x.b); }
@@ -1693,7 +1732,7 @@ function overlapper(a, b) {
 function plasserNavn() {
   if (!S.navn) { prikker.length = 0; ringer.length = 0; for (const e of etiketter.values()) e.mal = 0; navnGaar = true; return; }
   const proj = aktivProj, F = TEMA.fonter, mobil = W <= 720;
-  const o = S.opp, del = S.del, niv = o.niv, aktive = new Set(landI(del)), m = LAND[o.maal];
+  const o = S.opp, del = S.del, niv = o.niv, aktive = new Set(landI(del)), m = o.fase === "slutt" ? null : LAND[o.maal];
   const quiz = o.fase === "quiz", blindt = niv === 2 && quiz, zoomet = niv === 3;
   const felt = mobil ? [8, 8, W - 8, synligH() * 0.46] : [10, 30, W - TEMA.panelBredde - 16, H - oppgavelinje() - 30];
   const opptatt = [], valgt = new Map();
@@ -1711,7 +1750,7 @@ function plasserNavn() {
     prikker.push({ ll: l.hp, l });
     opptatt.push([p[0] - 2.5, p[1] - 2.5, p[0] + 2.5, p[1] + 2.5]);
   }
-  const mh = proj(m.hp);
+  const mh = m && proj(m.hp);
   if (!blindt && mh && !(quiz && niv === 1) && !(quiz && niv === 3 && o.steg === "klikk")) {
     prikker.push({ ll: m.hp, skjult: quiz });
     opptatt.push([mh[0] - 3.5, mh[1] - 3.5, mh[0] + 3.5, mh[1] + 3.5]);
@@ -1743,7 +1782,7 @@ function plasserNavn() {
       if (ledig(r)) { legg("land " + l.a3, t, l.lp, p, p[0], p[1] + dy + 4, F.land, tok.css.land, "center", { sperr: 1, r }); opptatt.push(r); break; }
     }
   }
-  const stort = foelgerLandet(o) && erStort(m), mll = stort ? d3.geoCentroid(storstDel(m)) : m.lp, mp = proj(mll);
+  const stort = m && foelgerLandet(o) && erStort(m), mll = m && (stort ? d3.geoCentroid(storstDel(m)) : m.lp), mp = m && proj(mll);
   if (!blindt && !(quiz && niv === 1) && mp) {
     const w = tekstBredde(m.n, F.maal), luft = r => [r[0] - 6, r[1] - 2, r[2] + 6, r[3] + 2];
     const iMaal = y => hvilketLand(proj.invert([mp[0], y])) === m;
@@ -1801,6 +1840,14 @@ function feir(o) {
     lys(m, now);
   } else if (o.brutt) flyt.push({ ll, t0: now, tekst: `Rekka på ${o.brutt} er brutt`, under: "", farge: tok.css.feil, liten: true });
   if (o.fullfort) for (const a3 of landI(o.del)) { const l = LAND[a3]; lys(l, now + 500 + Math.min(1500, km(m.lp, l.lp) / 2)); }  // en bølge av gull ut fra det siste landet
+  vekk();
+}
+// Sluttkortet: landene du kartla på turen lyser opp etter tur mens kartet flyr ut, og klangen fra en fullført del spilles.
+function feirTur(o) {
+  lyd("ferdig");
+  if (ROLIG()) return;
+  const now = performance.now(), nye = [...new Set(o.eks.svar.filter(s => s.ny).map(s => s.a3))];
+  nye.forEach((a3, i) => lys(LAND[a3], now + 800 + i * 280));
   vekk();
 }
 function tegnReaksjon(now) {
@@ -2283,10 +2330,21 @@ function tegnPanel() {
   $("#svarskjema").hidden = !skriv;
   $("#vis").hidden = !quiz;
   $("#neste").hidden = quiz;
+  const slutt = o.fase === "slutt";
+  $("#neste").textContent = slutt ? "Én ekspedisjon til" : o.eksSlutt ? "Se turen" : "Neste";
+  const e = slutt ? o.eks : S.eks, visEks = slutt || (o.fase !== "ny" && !o.fullfort);
+  $("#ekspedisjon").hidden = !visEks;
+  if (visEks) {
+    const egen = e && e.del === del && e.niv === niv, nr = egen ? e.nr : (S.eksNr || 0) + 1, svar = egen ? e.svar : [];
+    $("#eksnavn").textContent = slutt ? "" : `Ekspedisjon ${nr}`;  // på sluttkortet står nummeret i tittelen
+    $("#ekspedisjon").setAttribute("aria-label", `Ekspedisjon ${nr}, ${svar.length} av ${EKS} spørsmål`);
+    $("#eksspor").replaceChildren(...Array.from({ length: EKS }, (_, i) => Object.assign(document.createElement("li"),
+      { className: svar[i] ? (svar[i].r === 1 ? "riktig" : svar[i].r ? "halv" : "feil") : quiz && i === svar.length ? "naa" : "" })));
+  }
   $("#hopp").hidden = o.fase !== "ny";
   const settNå = settFor(del, niv);
   $("#tilbake").hidden = !(o.fase === "ny" && settNå !== true && settNå.length > 0);
-  $("#wiki").hidden = quiz || !!o.fullfort;
+  $("#wiki").hidden = quiz || slutt || !!o.fullfort;
   $("#wiki").href = `https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/${m.wd}`;
   $("#tipsknapp").hidden = !quiz;
   $("#tipsknapp").textContent = o.tips ? "Ett tips til" : "Tips";
@@ -2295,7 +2353,18 @@ function tegnPanel() {
   if (quiz && o.tips > 0) $("#tipslinje").replaceChildren(...tipsDeler(o, m).map(([stil, tekst]) => Object.assign(document.createElement("span"), { className: stil, textContent: tekst })));
   const hst = grunnform(m.h)[0];
 
-  if (quiz && o.niv === 1) {
+  if (slutt) {
+    const nye = [...new Set(o.eks.svar.filter(s => s.ny).map(s => s.a3))], n = nye.length, riktige = o.eks.svar.filter(s => s.r).length;
+    settTittel(`Ekspedisjon ${o.eks.nr} fullført`, false);
+    st.textContent = !n ? "Ingen nye denne gangen, men det du øvde på, kommer igjen."
+      : o.niv === 1 ? `Du kartla ${n} ${n === 1 ? "nytt land" : "nye land"} på turen.`
+      : o.niv === 2 ? `Du fant ${n} ${n === 1 ? "nytt land" : "nye land"} på turen.` : `Du lærte ${n} ${n === 1 ? "ny hovedstad" : "nye hovedsteder"} på turen.`;
+    rad("Riktige", `${riktige} av ${o.eks.svar.length}`);
+    if (n) rad(o.niv === 3 ? "Nye hovedsteder" : "Nye land", nye.map(a3 => o.niv === 3 ? grunnform(LAND[a3].h)[0] : navn(a3)).join(", "));
+    rad("Beste rekke", tall(o.eks.best));
+    rad("Poeng", tall(o.eks.p));
+    $("#hint").textContent = "Turen er tegnet med gull på kartet. Trykk Enter for å dra ut igjen.";
+  } else if (quiz && o.niv === 1) {
     settTittel("Hvilket land er uthevet?", false);
     st.textContent = "Skriv navnet. Små skrivefeil godtas.";
     $("#svar").placeholder = "Landets navn";
@@ -2355,7 +2424,8 @@ function tegnPanel() {
     const [lf, tf] = framdrift(del, o.niv);
     $("#hint").textContent = o.fase === "ny" ? "Enter eller piltastene blar. Kan du dem allerede, start spørsmålene."
       : lf === tf && o.niv < 3 && o.nyLaert ? `Alle er lært. Neste tar deg til nivå ${o.niv + 1}, ${NIVAA[o.niv + 1]}.`
-      : lf === tf && o.niv < 3 ? `Alle er lært. Nivå ${o.niv + 1} er låst opp.` : "Trykk Enter for neste.";
+      : lf === tf && o.niv < 3 ? `Alle er lært. Nivå ${o.niv + 1} er låst opp.`
+      : o.eksSlutt ? "Det var det tiende spørsmålet. Trykk Enter for å se turen." : "Trykk Enter for neste.";
   }
   if (quiz && (o.tips > 0 || o.stedTips > 0)) $("#hint").textContent = `${$("#hint").textContent} Riktig svar med tips teller halvt.`.trim();
   const d = S.dag[iDag()] || [0, 0, 0];
